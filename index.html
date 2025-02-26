@@ -8,294 +8,21 @@
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Arial', sans-serif;
-            scroll-behavior: smooth;
-        }
-
-        :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #f5f5f5;
-            --accent-color: #e67e22;
-            --text-color: #333;
-        }
-
-        body {
-            line-height: 1.6;
-            color: var(--text-color);
-        }
-
-        /* Header e Navegação */
-        header {
-            position: fixed;
-            width: 100%;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 1rem;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            z-index: 1000;
-        }
-
-        nav {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--primary-color);
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-            align-items: center;
-        }
-
-        .nav-links a {
-            text-decoration: none;
-            color: var(--text-color);
-            transition: color 0.3s;
-        }
-
-        .nav-links a:hover {
-            color: var(--accent-color);
-        }
-
-        /* Seções */
-        section {
-            min-height: 100vh;
-            padding: 80px 20px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        #home {
-            background: var(--secondary-color);
-        }
-
-        #products {
-            background: white;
-        }
-
-        #about {
-            background: var(--secondary-color);
-        }
-
-        #contact {
-            background: white;
-        }
-
-        .section-content {
-            max-width: 800px;
-            text-align: center;
-        }
-
-        /* Modal de Login */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1001;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .modal.active {
-            opacity: 1;
-        }
-
-        .modal-content {
-            position: relative;
-            background: white;
-            max-width: 400px;
-            margin: 100px auto;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-            transform: translateY(-20px);
-            opacity: 0;
-            transition: all 0.3s ease;
-        }
-
-        .modal.active .modal-content {
-            transform: translateY(0);
-            opacity: 1;
-        }
-
-        .close-modal {
-            position: absolute;
-            right: 20px;
-            top: 20px;
-            font-size: 24px;
-            cursor: pointer;
-            color: #999;
-            transition: color 0.3s;
-        }
-
-        .close-modal:hover {
-            color: var(--primary-color);
-        }
-
-        .modal-header {
-            margin-bottom: 25px;
-            text-align: center;
-        }
-
-        .modal-header h2 {
-            color: var(--primary-color);
-            font-size: 24px;
-            margin-bottom: 10px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: var(--primary-color);
-            font-weight: 500;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e1e1e1;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: border-color 0.3s, box-shadow 0.3s;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: var(--accent-color);
-            box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.1);
-        }
-
-        .form-group .error {
-            color: #e74c3c;
-            font-size: 14px;
-            margin-top: 5px;
-            display: none;
-        }
-
-        .auth-buttons {
-            display: flex;
-            gap: 15px;
-            margin-top: 30px;
-        }
-
-        .auth-buttons button {
-            flex: 1;
-            padding: 12px;
-            background: var(--accent-color);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 16px;
-            font-weight: 500;
-        }
-
-        .auth-buttons button:hover {
-            background: #d35400;
-            transform: translateY(-2px);
-        }
-
-        .auth-buttons button:active {
-            transform: translateY(0);
-        }
-
-        #authMessage {
-            margin-top: 15px;
-            padding: 10px;
-            border-radius: 6px;
-            text-align: center;
-            font-size: 14px;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        #authMessage.error {
-            background: #fee2e2;
-            color: #dc2626;
-            opacity: 1;
-        }
-
-        #authMessage.success {
-            background: #dcfce7;
-            color: #16a34a;
-            opacity: 1;
-        }
-
-        .login-btn {
-            padding: 8px 20px;
-            background: var(--accent-color);
-            color: white !important;
-            border-radius: 6px;
-            transition: all 0.3s;
-        }
-
-        .login-btn:hover {
-            background: #d35400;
-            transform: translateY(-2px);
-        }
-
-        .user-menu {
-            display: none;
-            position: absolute;
-            right: 20px;
-            top: 60px;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .user-menu p {
-            color: var(--primary-color);
-            font-weight: 500;
-            margin-bottom: 15px;
-        }
-
-        .user-menu button {
-            width: 100%;
-            padding: 10px;
-            background: var(--accent-color);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .user-menu button:hover {
-            background: #d35400;
-            transform: translateY(-2px);
-        }
-    </style>
+    
+    <!-- CSS Externo -->
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <!-- Header e Navegação -->
     <header>
         <nav>
             <div class="logo">Minimal Home</div>
+            <!-- Botão de menu para mobile -->
+            <button class="menu-toggle" id="menuToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
             <div class="nav-links">
                 <a href="#home">Home</a>
                 <a href="#products">Produtos</a>
@@ -310,7 +37,7 @@
         </nav>
     </header>
 
-    <!-- Modal de Login -->
+    <!-- Modal de Login e Registro -->
     <div id="loginModal" class="modal">
         <div class="modal-content">
             <span class="close-modal">&times;</span>
@@ -329,11 +56,37 @@
                     <input type="password" id="password" required>
                     <span class="error" id="passwordError"></span>
                 </div>
+                <div class="forgot-password">
+                    <a href="#" id="forgotPasswordLink">Esqueceu sua senha?</a>
+                </div>
                 <div class="auth-buttons">
                     <button type="button" onclick="login()" id="loginButton">Login</button>
                     <button type="button" onclick="register()" id="registerButton">Cadastrar</button>
                 </div>
                 <p id="authMessage"></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Redefinição de Senha -->
+    <div id="resetPasswordModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div class="modal-header">
+                <h2>Redefinir Senha</h2>
+                <p>Digite seu email para receber o link de redefinição</p>
+            </div>
+            <form id="resetForm" onsubmit="return false;">
+                <div class="form-group">
+                    <label for="resetEmail">Email</label>
+                    <input type="email" id="resetEmail" required>
+                    <span class="error" id="resetEmailError"></span>
+                </div>
+                <div class="auth-buttons">
+                    <button type="button" onclick="sendPasswordReset()" id="resetButton">Enviar Link</button>
+                    <button type="button" onclick="backToLogin()" id="backToLoginButton">Voltar</button>
+                </div>
+                <p id="resetMessage"></p>
             </form>
         </div>
     </div>
@@ -344,12 +97,108 @@
             <h1>Bem-vindo à Minimal Home</h1>
             <p>Design minimalista para sua casa</p>
         </div>
+
+        <!-- Carrossel de Banners -->
+        <div class="carousel-container">
+            <div class="carousel-slide">
+                <div class="carousel-item" style="background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('/api/placeholder/1000/400') no-repeat center/cover;">
+                    <h2>Design Minimalista</h2>
+                    <p>Móveis elegantes e funcionais para transformar seu espaço</p>
+                    <a href="#products" class="btn">Ver Coleção</a>
+                </div>
+                <div class="carousel-item" style="background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('/api/placeholder/1000/400') no-repeat center/cover;">
+                    <h2>Ambientes Harmoniosos</h2>
+                    <p>Crie espaços que transmitem calma e organização</p>
+                    <a href="#products" class="btn">Explorar</a>
+                </div>
+                <div class="carousel-item" style="background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('/api/placeholder/1000/400') no-repeat center/cover;">
+                    <h2>Decor Sustentável</h2>
+                    <p>Produtos eco-friendly que respeitam o meio ambiente</p>
+                    <a href="#about" class="btn">Saiba Mais</a>
+                </div>
+            </div>
+
+            <div class="carousel-arrow prev">
+                <i class="arrow-icon arrow-left"></i>
+            </div>
+            <div class="carousel-arrow next">
+                <i class="arrow-icon arrow-right"></i>
+            </div>
+
+            <div class="carousel-controls">
+                <div class="carousel-dot active"></div>
+                <div class="carousel-dot"></div>
+                <div class="carousel-dot"></div>
+            </div>
+        </div>
     </section>
 
     <section id="products">
         <div class="section-content">
             <h2>Nossos Produtos</h2>
             <p>Explore nossa coleção de móveis e decoração minimalista.</p>
+        </div>
+        
+        <div class="products-container">
+            <div class="product-card">
+                <div class="product-image" style="background-image: url('/api/placeholder/400/300')"></div>
+                <div class="product-info">
+                    <h3>Poltrona Minimalista</h3>
+                    <p class="product-description">Conforto e elegância com linhas simples e materiais de alta qualidade.</p>
+                    <p class="product-price">R$ 1.299,00</p>
+                    <button class="product-button">Ver Detalhes</button>
+                </div>
+            </div>
+            
+            <div class="product-card">
+                <div class="product-image" style="background-image: url('/api/placeholder/400/300')"></div>
+                <div class="product-info">
+                    <h3>Mesa de Centro</h3>
+                    <p class="product-description">Design funcional com estrutura em madeira maciça e acabamento natural.</p>
+                    <p class="product-price">R$ 899,00</p>
+                    <button class="product-button">Ver Detalhes</button>
+                </div>
+            </div>
+            
+            <div class="product-card">
+                <div class="product-image" style="background-image: url('/api/placeholder/400/300')"></div>
+                <div class="product-info">
+                    <h3>Luminária Suspensa</h3>
+                    <p class="product-description">Iluminação decorativa com materiais sustentáveis e design inovador.</p>
+                    <p class="product-price">R$ 459,00</p>
+                    <button class="product-button">Ver Detalhes</button>
+                </div>
+            </div>
+            
+            <div class="product-card">
+                <div class="product-image" style="background-image: url('/api/placeholder/400/300')"></div>
+                <div class="product-info">
+                    <h3>Estante Modular</h3>
+                    <p class="product-description">Solução versátil para organização com módulos ajustáveis e design clean.</p>
+                    <p class="product-price">R$ 1.799,00</p>
+                    <button class="product-button">Ver Detalhes</button>
+                </div>
+            </div>
+            
+            <div class="product-card">
+                <div class="product-image" style="background-image: url('/api/placeholder/400/300')"></div>
+                <div class="product-info">
+                    <h3>Conjunto Decorativo</h3>
+                    <p class="product-description">Kit com peças decorativas minimalistas para complementar seu ambiente.</p>
+                    <p class="product-price">R$ 349,00</p>
+                    <button class="product-button">Ver Detalhes</button>
+                </div>
+            </div>
+            
+            <div class="product-card">
+                <div class="product-image" style="background-image: url('/api/placeholder/400/300')"></div>
+                <div class="product-info">
+                    <h3>Sofá Escandinavo</h3>
+                    <p class="product-description">Sofá de 3 lugares com design escandinavo, confortável e elegante para sua sala de estar.</p>
+                    <p class="product-price">R$ 2.499,00</p>
+                    <button class="product-button">Ver Detalhes</button>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -367,174 +216,30 @@
         </div>
     </section>
 
-    <script>
-        // Configurações do Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyC8FEStQLy23yiMQCl6rWJpGC7ZpygwWa4",
-            authDomain: "minimal-house.firebaseapp.com",
-            projectId: "minimal-house",
-            storageBucket: "minimal-house.firebasestorage.app",
-            messagingSenderId: "755455177627",
-            appId: "1:755455177627:web:e6d50839925ff244b7e73e",
-            measurementId: "G-ZBC45Y33Y4"
-        };
+    <!-- JavaScript Externo -->
+    <script src="script.js"></script>
 
-        // Inicializar Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-
-        // Elementos do DOM
-        const modal = document.getElementById('loginModal');
-        const loginBtn = document.getElementById('loginBtn');
-        const closeBtn = document.querySelector('.close-modal');
-        const userMenu = document.getElementById('userMenu');
-        const userEmail = document.getElementById('userEmail');
-        const authMessage = document.getElementById('authMessage');
-        const emailInput = document.getElementById('email');
-        const passwordInput = document.getElementById('password');
-        const loginButton = document.getElementById('loginButton');
-        const registerButton = document.getElementById('registerButton');
-
-        // Controle do Modal
-        loginBtn.onclick = function() {
-            modal.style.display = 'block';
-            setTimeout(() => modal.classList.add('active'), 10);
-        }
-
-        closeBtn.onclick = function() {
-            closeModal();
-        }
-
-        window.onclick = function(event) {
-            if (event.target == modal) {
-                closeModal();
-            }
-        }
-
-        function closeModal() {
-            modal.classList.remove('active');
-            setTimeout(() => {
-                modal.style.display = 'none';
-                resetForm();
-            }, 300);
-        }
-
-        function resetForm() {
-            document.getElementById('authForm').reset();
-            authMessage.className = '';
-            authMessage.textContent = '';
-            emailInput.style.borderColor = '#e1e1e1';
-            passwordInput.style.borderColor = '#e1e1e1';
-            document.getElementById('emailError').style.display = 'none';
-            document.getElementById('passwordError').style.display = 'none';
-        }
-
-        function validateForm() {
-            let isValid = true;
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-            if (!emailRegex.test(emailInput.value)) {
-                document.getElementById('emailError').textContent = 'Email inválido';
-                document.getElementById('emailError').style.display = 'block';
-                emailInput.style.borderColor = '#e74c3c';
-                isValid = false;
-            }
-
-            if (passwordInput.value.length < 6) {
-                document.getElementById('passwordError').textContent = 'Senha deve ter no mínimo 6 caracteres';
-                document.getElementById('passwordError').style.display = 'block';
-                passwordInput.style.borderColor = '#e74c3c';
-                isValid = false;
-            }
-
-            return isValid;
-        }
-
-        function showMessage(message, type) {
-            authMessage.textContent = message;
-            authMessage.className = type;
-        }
-
-        async function login() {
-            if (!validateForm()) return;
-            
-            try {
-                const result = await auth.signInWithEmailAndPassword(emailInput.value, passwordInput.value);
-                showMessage('Login realizado com sucesso!', 'success');
-                setTimeout(() => {
-                    closeModal();
-                    showUserMenu(result.user);
-                }, 1000);
-            } catch (error) {
-                showMessage(getErrorMessage(error.code), 'error');
-            }
-        }
-
-        async function register() {
-            if (!validateForm()) return;
-            
-            try {
-                const result = await auth.createUserWithEmailAndPassword(emailInput.value, passwordInput.value);
-                showMessage('Conta criada com sucesso!', 'success');
-                setTimeout(() => {
-                    closeModal();
-                    showUserMenu(result.user);
-                }, 1000);
-            } catch (error) {
-                showMessage(getErrorMessage(error.code), 'error');
-            }
-        }
-
-        function getErrorMessage(errorCode) {
-            switch (errorCode) {
-                case 'auth/email-already-in-use':
-                    return 'Este email já está em uso';
-                case 'auth/invalid-email':
-                    return 'Email inválido';
-                case 'auth/weak-password':
-                    return 'Senha muito fraca';
-                case 'auth/user-not-found':
-                    return 'Usuário não encontrado';
-                case 'auth/wrong-password':
-                    return 'Senha incorreta';
-                default:
-                    return 'Erro ao realizar a operação';
-            }
-        }
-
-        function showUserMenu(user) {
-            loginBtn.style.display = 'none';
-            userMenu.style.display = 'block';
-            userEmail.textContent = user.email;
-        }
-
-        function logout() {
-            auth.signOut().then(() => {
-                userMenu.style.display = 'none';
-                loginBtn.style.display = 'block';
-            });
-        }
-
-        // Validação em tempo real
-        emailInput.addEventListener('input', function() {
-            this.style.borderColor = '#e1e1e1';
-            document.getElementById('emailError').style.display = 'none';
-        });
-
-        passwordInput.addEventListener('input', function() {
-            this.style.borderColor = '#e1e1e1';
-            document.getElementById('passwordError').style.display = 'none';
-        });
-
-        // Observer de autenticação
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                showUserMenu(user);
-            } else {
-                userMenu.style.display = 'none';
-                loginBtn.style.display = 'block';
-            }
-        });
-    </script>
+    <div id="productModal" class="modal">
+        <div class="modal-content product-modal-content">
+            <span class="close-modal">&times;</span>
+            <div class="product-modal-container">
+                <div class="product-modal-image"></div>
+                <div class="product-modal-details">
+                    <h2 id="modalProductName"></h2>
+                    <p id="modalProductDescription"></p>
+                    <p id="modalProductPrice" class="modal-price"></p>
+                    <div class="product-quantity">
+                        <label for="quantity">Quantidade:</label>
+                        <div class="quantity-control">
+                            <button class="quantity-btn minus">-</button>
+                            <input type="number" id="quantity" name="quantity" min="1" value="1">
+                            <button class="quantity-btn plus">+</button>
+                        </div>
+                    </div>
+                    <button class="add-to-cart-btn">Adicionar ao Carrinho</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
