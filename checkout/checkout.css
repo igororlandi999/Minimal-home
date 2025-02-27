@@ -597,3 +597,62 @@ body {
         display: block;
     }
 }
+
+/* Correção para a navbar */
+header {
+    position: relative; /* Alterar de fixed ou absolute para relative */
+    width: 100%;
+    z-index: 100;
+    background-color: white;
+}
+
+/* Remover ou ajustar margem superior do checkout container */
+.checkout-container {
+    margin: 20px auto 50px; /* Reduzido de 100px para 20px no topo */
+    padding: 0 20px;
+}
+
+/* Ajustar espaço entre os indicadores de etapas do checkout */
+.progress-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 2;
+    min-width: 70px; /* Adicionar largura mínima */
+    margin: 0 5px; /* Adicionar margem lateral */
+}
+
+/* Melhorar o espaçamento das labels de etapas */
+.step-label {
+    font-size: 0.85rem;
+    color: #666;
+    transition: var(--transition-default);
+    white-space: nowrap; /* Evitar quebra de linha */
+    padding: 0 5px; /* Adicionar padding para separar as palavras */
+    margin-top: 5px; /* Aumentar espaçamento entre o número e o texto */
+}
+
+/* Ajustar a linha de progresso para compensar o espaçamento */
+.progress-line {
+    height: 2px;
+    background-color: var(--light-gray);
+    flex: 1;
+    z-index: 1;
+    transition: var(--transition-default);
+    margin: 0 -5px; /* Ajustar as linhas para compensar as margens dos steps */
+}
+
+/* Adicionar media query para telas menores */
+@media (max-width: 576px) {
+    .checkout-progress {
+        padding: 0 10px;
+    }
+    
+    .step-label {
+        font-size: 0.7rem; /* Reduzir tamanho da fonte em telas menores */
+    }
+    
+    .progress-step {
+        min-width: 60px; /* Reduzir largura mínima em telas menores */
+    }
+}

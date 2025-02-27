@@ -34,7 +34,7 @@ const menuToggle = document.getElementById('menuToggle');
 const header = document.querySelector('header');
 
 // Adicionar evento de clique para o botão de menu
-menuToggle.addEventListener('click', function() {
+menuToggle.addEventListener('click', function () {
     header.classList.toggle('menu-active');
 });
 
@@ -43,12 +43,12 @@ menuToggle.addEventListener('click', function() {
 // =================================
 
 // Controle dos Modais
-loginBtn.onclick = function(e) {
+loginBtn.onclick = function (e) {
     e.preventDefault();
     openModal(loginModal);
 }
 
-forgotPasswordLink.onclick = function(e) {
+forgotPasswordLink.onclick = function (e) {
     e.preventDefault();
     closeModal(loginModal);
     setTimeout(() => {
@@ -56,7 +56,7 @@ forgotPasswordLink.onclick = function(e) {
     }, 300);
 }
 
-backToLoginButton.onclick = function() {
+backToLoginButton.onclick = function () {
     closeModal(resetPasswordModal);
     setTimeout(() => {
         openModal(loginModal);
@@ -65,13 +65,13 @@ backToLoginButton.onclick = function() {
 
 // Adiciona evento de fechar para todos os botões de fechar
 closeBtns.forEach(btn => {
-    btn.onclick = function() {
+    btn.onclick = function () {
         const modalToClose = this.closest('.modal');
         closeModal(modalToClose);
     }
 });
 
-window.addEventListener('click', function(event) {
+window.addEventListener('click', function (event) {
     if (event.target.classList.contains('modal')) {
         closeModal(event.target);
     }
@@ -98,7 +98,7 @@ function resetForm(formId, messageElement) {
     document.getElementById(formId).reset();
     messageElement.className = '';
     messageElement.textContent = '';
-    
+
     // Resetar campos de login
     if (formId === 'authForm') {
         emailInput.style.borderColor = '#e1e1e1';
@@ -106,7 +106,7 @@ function resetForm(formId, messageElement) {
         document.getElementById('emailError').style.display = 'none';
         document.getElementById('passwordError').style.display = 'none';
     }
-    
+
     // Resetar campos de redefinição de senha
     if (formId === 'resetForm') {
         resetEmailInput.style.borderColor = '#e1e1e1';
@@ -151,7 +151,7 @@ function showMessage(message, type, messageElement = authMessage) {
 
 async function login() {
     if (!validateForm('login')) return;
-    
+
     try {
         const result = await auth.signInWithEmailAndPassword(emailInput.value, passwordInput.value);
         showMessage('Login realizado com sucesso!', 'success');
@@ -166,7 +166,7 @@ async function login() {
 
 async function register() {
     if (!validateForm('register')) return;
-    
+
     try {
         const result = await auth.createUserWithEmailAndPassword(emailInput.value, passwordInput.value);
         showMessage('Conta criada com sucesso!', 'success');
@@ -181,11 +181,11 @@ async function register() {
 
 async function sendPasswordReset() {
     if (!validateForm('reset')) return;
-    
+
     try {
         await auth.sendPasswordResetEmail(resetEmailInput.value);
         showMessage('Link de redefinição enviado! Verifique seu email.', 'success', resetMessage);
-        
+
         // Desabilitar botão para evitar múltiplos envios
         resetButton.disabled = true;
         setTimeout(() => {
@@ -232,17 +232,17 @@ function logout() {
 }
 
 // Validação em tempo real
-emailInput.addEventListener('input', function() {
+emailInput.addEventListener('input', function () {
     this.style.borderColor = '#e1e1e1';
     document.getElementById('emailError').style.display = 'none';
 });
 
-passwordInput.addEventListener('input', function() {
+passwordInput.addEventListener('input', function () {
     this.style.borderColor = '#e1e1e1';
     document.getElementById('passwordError').style.display = 'none';
 });
 
-resetEmailInput.addEventListener('input', function() {
+resetEmailInput.addEventListener('input', function () {
     this.style.borderColor = '#e1e1e1';
     document.getElementById('resetEmailError').style.display = 'none';
 });
@@ -261,7 +261,7 @@ auth.onAuthStateChanged((user) => {
 // GERENCIAMENTO DE PRODUTOS
 // =================================
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Elementos do DOM para o modal de produto
     const productModal = document.getElementById('productModal');
     const modalProductName = document.getElementById('modalProductName');
@@ -271,49 +271,49 @@ document.addEventListener('DOMContentLoaded', function() {
     const quantityInput = document.getElementById('quantity');
     const minusBtn = document.querySelector('.quantity-btn.minus');
     const plusBtn = document.querySelector('.quantity-btn.plus');
-    
+
     // Botões de produto
     const productButtons = document.querySelectorAll('.product-button');
-    
+
     // Abrir modal ao clicar em "Ver Detalhes"
     productButtons.forEach(button => {
-        button.addEventListener('click', function() {
+        button.addEventListener('click', function () {
             // Obtendo informações do produto
             const productCard = this.closest('.product-card');
             const productName = productCard.querySelector('h3').textContent;
             const productDesc = productCard.querySelector('.product-description').textContent;
             const productPrice = productCard.querySelector('.product-price').textContent;
             const productImageStyle = productCard.querySelector('.product-image').style.backgroundImage;
-            
+
             // Preenchendo o modal com as informações do produto
             modalProductName.textContent = productName;
             modalProductDescription.textContent = productDesc;
             modalProductPrice.textContent = productPrice;
             modalProductImage.style.backgroundImage = productImageStyle;
-            
+
             // Resetando quantidade
             quantityInput.value = 1;
-            
+
             // Exibindo o modal
             openModal(productModal);
         });
     });
-    
+
     // Controle de quantidade
-    minusBtn.addEventListener('click', function() {
+    minusBtn.addEventListener('click', function () {
         let currentValue = parseInt(quantityInput.value);
         if (currentValue > 1) {
             quantityInput.value = currentValue - 1;
         }
     });
-    
-    plusBtn.addEventListener('click', function() {
+
+    plusBtn.addEventListener('click', function () {
         let currentValue = parseInt(quantityInput.value);
         quantityInput.value = currentValue + 1;
     });
-    
+
     // Validar entrada direta de quantidade
-    quantityInput.addEventListener('change', function() {
+    quantityInput.addEventListener('change', function () {
         if (this.value < 1) {
             this.value = 1;
         }
@@ -327,7 +327,7 @@ document.addEventListener('DOMContentLoaded', function() {
 const cartManager = (() => {
     // Estado do carrinho
     let cart = [];
-    
+
     // Elementos DOM
     const cartBtn = document.getElementById('cartBtn');
     const cartSidebar = document.getElementById('cartSidebar');
@@ -337,54 +337,54 @@ const cartManager = (() => {
     const cartCountElement = document.querySelector('.cart-count');
     const cartTotalElement = document.getElementById('cartTotal');
     const checkoutBtn = document.getElementById('checkoutBtn');
-    
+
     // Inicialização
     function init() {
         // Carregar carrinho do localStorage, se existir
         loadCart();
-        
+
         // Configurar event listeners
         setupEventListeners();
-        
+
         // Atualizar a UI do carrinho
         updateCartUI();
     }
-    
+
     // Configurar event listeners
     function setupEventListeners() {
         // Abrir carrinho
-        cartBtn.addEventListener('click', function(e) {
+        cartBtn.addEventListener('click', function (e) {
             e.preventDefault();
             openCart();
         });
-        
+
         // Fechar carrinho (botão X)
         closeCartBtn.addEventListener('click', closeCart);
-        
+
         // Fechar carrinho (clique no overlay)
         cartOverlay.addEventListener('click', closeCart);
-        
+
         // Checkout button
-        checkoutBtn.addEventListener('click', function() {
+        checkoutBtn.addEventListener('click', function () {
             if (cart.length > 0) {
-                alert('Redirecionando para checkout...');
-                // Aqui você implementaria a lógica de checkout
+                // Redirecionar para a página de checkout
+                window.location.href = 'checkout/checkout.html';
             }
         });
-        
+
         // Adicionar evento para o botão "Adicionar ao Carrinho" na modal de produto
         const addToCartBtn = document.querySelector('.add-to-cart-btn');
         if (addToCartBtn) {
-            addToCartBtn.addEventListener('click', function() {
+            addToCartBtn.addEventListener('click', function () {
                 const modalProductName = document.getElementById('modalProductName').textContent;
                 const modalProductPrice = document.getElementById('modalProductPrice').textContent;
                 const modalProductImage = document.querySelector('.product-modal-image').style.backgroundImage;
                 const quantity = parseInt(document.getElementById('quantity').value);
-                
+
                 // Extrair o valor numérico do preço (remover "R$ " e converter vírgula para ponto)
                 const priceText = modalProductPrice.replace('R$ ', '').replace('.', '').replace(',', '.');
                 const price = parseFloat(priceText);
-                
+
                 addToCart({
                     id: generateProductId(modalProductName),
                     name: modalProductName,
@@ -392,29 +392,29 @@ const cartManager = (() => {
                     image: modalProductImage,
                     quantity: quantity
                 });
-                
+
                 // Fechar o modal de produto
                 const productModal = document.getElementById('productModal');
                 if (productModal) {
                     closeModal(productModal);
                 }
-                
+
                 // Abrir o carrinho
                 openCart();
             });
         }
     }
-    
+
     // Gerar ID para o produto baseado no nome
     function generateProductId(name) {
         return name.toLowerCase().replace(/[^a-z0-9]/g, '_');
     }
-    
+
     // Adicionar produto ao carrinho
     function addToCart(product) {
         // Verificar se o produto já está no carrinho
         const existingProductIndex = cart.findIndex(item => item.id === product.id);
-        
+
         if (existingProductIndex >= 0) {
             // Se o produto já existe, apenas atualizar a quantidade
             cart[existingProductIndex].quantity += product.quantity;
@@ -422,23 +422,23 @@ const cartManager = (() => {
             // Se é um novo produto, adicionar ao carrinho
             cart.push(product);
         }
-        
+
         // Salvar no localStorage e atualizar UI
         saveCart();
         updateCartUI();
     }
-    
+
     // Remover produto do carrinho
     function removeFromCart(productId) {
         cart = cart.filter(item => item.id !== productId);
         saveCart();
         updateCartUI();
     }
-    
+
     // Atualizar quantidade de um produto
     function updateQuantity(productId, newQuantity) {
         const productIndex = cart.findIndex(item => item.id === productId);
-        
+
         if (productIndex >= 0) {
             // Atualizar a quantidade
             if (newQuantity > 0) {
@@ -447,57 +447,57 @@ const cartManager = (() => {
                 // Se a quantidade for 0 ou negativa, remover o produto
                 removeFromCart(productId);
             }
-            
+
             // Salvar e atualizar UI
             saveCart();
             updateCartUI();
         }
     }
-    
+
     // Calcular o total do carrinho
     function calculateTotal() {
         return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
     }
-    
+
     // Formatar preço para exibição
     function formatPrice(price) {
         return 'R$ ' + price.toFixed(2).replace('.', ',');
     }
-    
+
     // Abrir o carrinho
     function openCart() {
         cartSidebar.classList.add('active');
         cartOverlay.classList.add('active');
         document.body.style.overflow = 'hidden'; // Impede o scroll da página
     }
-    
+
     // Fechar o carrinho
     function closeCart() {
         cartSidebar.classList.remove('active');
         cartOverlay.classList.remove('active');
         document.body.style.overflow = ''; // Restaura o scroll da página
     }
-    
+
     // Atualizar a UI do carrinho
     function updateCartUI() {
         // Atualizar contador de itens
         cartCountElement.textContent = cart.reduce((count, item) => count + item.quantity, 0);
-        
+
         // Atualizar o valor total
         cartTotalElement.textContent = formatPrice(calculateTotal());
-        
+
         // Habilitar/desabilitar botão de checkout
         checkoutBtn.disabled = cart.length === 0;
-        
+
         // Atualizar lista de itens
         renderCartItems();
     }
-    
+
     // Renderizar itens do carrinho
     function renderCartItems() {
         // Limpar o container
         cartItemsContainer.innerHTML = '';
-        
+
         // Se o carrinho estiver vazio, mostrar mensagem
         if (cart.length === 0) {
             cartItemsContainer.innerHTML = `
@@ -513,7 +513,7 @@ const cartManager = (() => {
             `;
             return;
         }
-        
+
         // Renderizar cada item do carrinho
         cart.forEach(item => {
             const cartItemElement = document.createElement('div');
@@ -533,17 +533,17 @@ const cartManager = (() => {
                     </div>
                 </div>
             `;
-            
+
             cartItemsContainer.appendChild(cartItemElement);
         });
-        
+
         // Adicionar event listeners para os botões de quantidade e remover
         const minusBtns = cartItemsContainer.querySelectorAll('.cart-quantity-btn.minus');
         const plusBtns = cartItemsContainer.querySelectorAll('.cart-quantity-btn.plus');
         const removeBtns = cartItemsContainer.querySelectorAll('.remove-from-cart');
-        
+
         minusBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', function () {
                 const productId = this.dataset.id;
                 const currentItem = cart.find(item => item.id === productId);
                 if (currentItem) {
@@ -551,9 +551,9 @@ const cartManager = (() => {
                 }
             });
         });
-        
+
         plusBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', function () {
                 const productId = this.dataset.id;
                 const currentItem = cart.find(item => item.id === productId);
                 if (currentItem) {
@@ -561,20 +561,20 @@ const cartManager = (() => {
                 }
             });
         });
-        
+
         removeBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', function () {
                 const productId = this.dataset.id;
                 removeFromCart(productId);
             });
         });
     }
-    
+
     // Salvar o carrinho no localStorage
     function saveCart() {
         localStorage.setItem('minimalHomeCart', JSON.stringify(cart));
     }
-    
+
     // Carregar o carrinho do localStorage
     function loadCart() {
         const savedCart = localStorage.getItem('minimalHomeCart');
@@ -582,7 +582,7 @@ const cartManager = (() => {
             cart = JSON.parse(savedCart);
         }
     }
-    
+
     // API pública
     return {
         init,
@@ -598,10 +598,10 @@ const cartManager = (() => {
 // CARROSSEL DE BANNERS
 // =================================
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Inicializar o carrinho
     cartManager.init();
-    
+
     // Carrossel de Banners
     const carouselSlide = document.querySelector('.carousel-slide');
     const carouselDots = document.querySelectorAll('.carousel-dot');
@@ -667,4 +667,109 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelector('.carousel-container').addEventListener('mouseleave', () => {
         slideInterval = setInterval(autoSlide, 5000);
     });
+});
+
+// Expor o cartManager para uso global
+window.cartManager = cartManager;
+
+// Adicione este código ao seu arquivo script.js
+
+// Formulário de Contato
+document.addEventListener('DOMContentLoaded', function () {
+    const contactForm = document.getElementById('contactForm');
+
+    if (contactForm) {
+        contactForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            // Validar o formulário
+            if (validateContactForm()) {
+                // Simular envio do formulário
+                sendContactForm();
+            }
+        });
+
+        // Adicionar event listeners para limpar erros quando o usuário digita
+        const contactInputs = contactForm.querySelectorAll('input, textarea');
+        contactInputs.forEach(input => {
+            input.addEventListener('input', function () {
+                this.style.borderColor = 'var(--border-color)';
+                const errorId = this.id + 'Error';
+                const errorElement = document.getElementById(errorId);
+                if (errorElement) {
+                    errorElement.style.display = 'none';
+                }
+            });
+        });
+    }
+
+    // Validar formulário de contato
+    function validateContactForm() {
+        let isValid = true;
+        const requiredFields = [
+            { id: 'contactName', errorId: 'contactNameError', message: 'Nome é obrigatório' },
+            { id: 'contactEmail', errorId: 'contactEmailError', message: 'Email é obrigatório' },
+            { id: 'contactSubject', errorId: 'contactSubjectError', message: 'Assunto é obrigatório' },
+            { id: 'contactMessage', errorId: 'contactMessageError', message: 'Mensagem é obrigatória' }
+        ];
+
+        // Verificar campos obrigatórios
+        requiredFields.forEach(field => {
+            const inputElement = document.getElementById(field.id);
+            const errorElement = document.getElementById(field.errorId);
+
+            if (!inputElement.value.trim()) {
+                errorElement.textContent = field.message;
+                errorElement.style.display = 'block';
+                inputElement.style.borderColor = 'var(--error-color)';
+                isValid = false;
+            } else {
+                errorElement.style.display = 'none';
+                inputElement.style.borderColor = 'var(--border-color)';
+            }
+        });
+
+        // Validar formato de email
+        const emailInput = document.getElementById('contactEmail');
+        const emailError = document.getElementById('contactEmailError');
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (emailInput.value.trim() && !emailRegex.test(emailInput.value)) {
+            emailError.textContent = 'Email inválido';
+            emailError.style.display = 'block';
+            emailInput.style.borderColor = 'var(--error-color)';
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+    // Simular envio do formulário
+    function sendContactForm() {
+        const formMessage = document.getElementById('contactFormMessage');
+        const submitBtn = contactForm.querySelector('.submit-btn');
+
+        // Desabilitar botão e mostrar status de envio
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Enviando...';
+
+        // Simular uma requisição de API
+        setTimeout(() => {
+            // Exibir mensagem de sucesso
+            formMessage.textContent = 'Mensagem enviada com sucesso! Entraremos em contato em breve.';
+            formMessage.className = 'form-message success';
+
+            // Resetar formulário
+            contactForm.reset();
+
+            // Restaurar botão
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Enviar Mensagem';
+
+            // Esconder mensagem após 5 segundos
+            setTimeout(() => {
+                formMessage.style.display = 'none';
+            }, 5000);
+        }, 1500);
+    }
 });
