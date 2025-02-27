@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administração de Avaliações - Minimal Home</title>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <!-- CSS Externo -->
+    <link rel="stylesheet" href="../styles.css">
+    <style>
+        .admin-container {
+            max-width: 1200px;
+            margin: 100px auto 50px;
+            padding: 20px;
+        }
+        
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .admin-title {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+        }
+        
+        .admin-filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .filter-group label {
+            font-weight: 500;
+            color: var(--primary-color);
+        }
+        
+        .filter-group select {
+            padding: 8px;
+            border: 1px solid var(--light-gray);
+            border-radius: 4px;
+        }
+        
+        .reviews-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        
+        .reviews-table th, 
+        .reviews-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--light-gray);
+        }
+        
+        .reviews-table th {
+            background-color: var(--secondary-color);
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .reviews-table tr:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .review-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-approve, 
+        .btn-reject,
+        .btn-delete {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        
+        .btn-approve {
+            background-color: var(--success-color);
+            color: white;
+        }
+        
+        .btn-approve:hover {
+            background-color: #15803d;
+        }
+        
+        .btn-reject, 
+        .btn-delete {
+            background-color: var(--error-color);
+            color: white;
+        }
+        
+        .btn-reject:hover,
+        .btn-delete:hover {
+            background-color: #b91c1c;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .status-pending {
+            background-color: #fff7ed;
+            color: #9a3412;
+        }
+        
+        .status-approved {
+            background-color: #ecfdf5;
+            color: #065f46;
+        }
+        
+        .status-rejected {
+            background-color: #fef2f2;
+            color: #991b1b;
+        }
+        
+        .star-rating {
+            color: #FFD700;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .pagination button {
+            padding: 8px 12px;
+            border: 1px solid var(--light-gray);
+            background-color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .pagination button:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .pagination button.active {
+            background-color: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+        
+        .login-required {
+            text-align: center;
+            padding: 50px;
+            background-color: var(--secondary-color);
+            border-radius: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header e Navegação -->
+    <header>
+        <nav>
+            <div class="logo">Minimal Home</div>
+            <!-- Botão de menu para mobile -->
+            <button class="menu-toggle" id="menuToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="nav-links">
+                <a href="../index.html#home">Home</a>
+                <a href="../index.html#products">Produtos</a>
+                <a href="../index.html#about">Sobre</a>
+                <a href="../index.html#contact">Contato</a>
+                <a href="#" id="loginBtn" class="login-btn">Login</a>
+                <div id="userMenu" class="user-menu">
+                    <p id="userEmail"></p>
+                    <button onclick="logout()">Sair</button>
+                </div>
+                <!-- Botão do Carrinho -->
+                <a href="#" id="cartBtn" class="cart-btn">
+                    <div class="cart-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="9" cy="21" r="1"></circle>
+                            <circle cx="20" cy="21" r="1"></circle>
+                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                        </svg>
+                        <span class="cart-count">0</span>
+                    </div>
+                </a>
+            </div>
+        </nav>
+    </header>
+    
+    <!-- Modal de Login e Registro -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div class="modal-header">
+                <h2>Bem-vindo</h2>
+                <p>Faça login ou crie sua conta</p>
+            </div>
+            <form id="authForm" onsubmit="return false;">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" required>
+                    <span class="error" id="emailError"></span>
+                </div>
+                <div class="form-group">
+                    <label for="password">Senha</label>
+                    <input type="password" id="password" required>
+                    <span class="error" id="passwordError"></span>
+                </div>
+                <div class="forgot-password">
+                    <a href="#" id="forgotPasswordLink">Esqueceu sua senha?</a>
+                </div>
+                <div class="auth-buttons">
+                    <button type="button" onclick="login()" id="loginButton">Login</button>
+                    <button type="button" onclick="register()" id="registerButton">Cadastrar</button>
+                </div>
+                <p id="authMessage"></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Redefinição de Senha -->
+    <div id="resetPasswordModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div class="modal-header">
+                <h2>Redefinir Senha</h2>
+                <p>Digite seu email para receber o link de redefinição</p>
+            </div>
+            <form id="resetForm" onsubmit="return false;">
+                <div class="form-group">
+                    <label for="resetEmail">Email</label>
+                    <input type="email" id="resetEmail" required>
+                    <span class="error" id="resetEmailError"></span>
+                </div>
+                <div class="auth-buttons">
+                    <button type="button" onclick="sendPasswordReset()" id="resetButton">Enviar Link</button>
+                    <button type="button" onclick="backToLogin()" id="backToLoginButton">Voltar</button>
+                </div>
+                <p id="resetMessage"></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Conteúdo Principal -->
+    <div class="admin-container">
+        <div class="admin-header">
+            <h1 class="admin-title">Gerenciamento de Avaliações</h1>
+        </div>
+        
+        <div id="adminContent">
+            <!-- O conteúdo será carregado via JavaScript -->
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="../script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Referência do Firestore
+            const db = firebase.firestore();
+            const reviewsCollection = db.collection('productReviews');
+            
+            // Mapeamento de IDs de produtos para nomes legíveis
+            const productIdToName = {
+                'poltrona_minimalista': 'Poltrona Minimalista',
+                'mesa_de_centro': 'Mesa de Centro',
+                'luminaria_suspensa': 'Luminária Suspensa',
+                'estante_modular': 'Estante Modular',
+                'conjunto_decorativo': 'Conjunto Decorativo',
+                'sofa_escandinavo': 'Sofá Escandinavo'
+            };
+            
+            // Estado da aplicação
+            let reviews = [];
+            let currentFilter = {
+                product: 'all',
+                status: 'all'
+            };
+            let currentPage = 1;
+            const itemsPerPage = 10;
+            
+            // Inicializar
+            initAdmin();
+            
+            // Verificar autenticação e permissões
+            function initAdmin() {
+                firebase.auth().onAuthStateChanged(user => {
+                    if (user) {
+                        // Verificar se é admin (exemplo: verificando o email)
+                        if (user.email.endsWith('@admin.com')) {
+                            loadReviews();
+                        } else {
+                            showAccessDenied();
+                        }
+                    } else {
+                        showLoginRequired();
+                    }
+                });
+            }
+            
+            // Mostrar página de login obrigatório
+            function showLoginRequired() {
+                const adminContent = document.getElementById('adminContent');
+                adminContent.innerHTML = `
+                    <div class="login-required">
+                        <h2>Login Obrigatório</h2>
+                        <p>Você precisa estar logado como administrador para acessar esta página.</p>
+                        <button class="btn-primary" id="adminLoginBtn">Fazer Login</button>
+                    </div>
+                `;
+                
+                document.getElementById('adminLoginBtn').addEventListener('click', function() {
+                    const loginModal = document.getElementById('loginModal');
+                    if (loginModal) {
+                        openModal(loginModal);
+                    }
+                });
+            }
+            
+            // Mostrar mensagem de acesso negado
+            function showAccessDenied() {
+                const adminContent = document.getElementById('adminContent');
+                adminContent.innerHTML = `
+                    <div class="login-required">
+                        <h2>Acesso Negado</h2>
+                        <p>Sua conta não tem permissões de administrador.</p>
+                        <p>Entre em contato com um administrador do sistema para obter acesso.</p>
+                    </div>
+                `;
+            }
+            
+            // Abrir modal
+            function openModal(modal) {
+                modal.style.display = 'block';
+                setTimeout(() => modal.classList.add('active'), 10);
+            }
+            
+            // Carregar avaliações do Firestore
+            async function loadReviews() {
+                try {
+                    const adminContent = document.getElementById('adminContent');
+                    adminContent.innerHTML = `<p>Carregando avaliações...</p>`;
+                    
+                    let query = reviewsCollection;
+                    
+                    // Aplicar filtros se necessário
+                    if (currentFilter.product !== 'all') {
+                        query = query.where('productId', '==', currentFilter.product);
+                    }
+                    
+                    if (currentFilter.status !== 'all') {
+                        query = query.where('status', '==', currentFilter.status);
+                    }
+                    
+                    // Ordenar por data de criação (mais recentes primeiro)
+                    query = query.orderBy('timestamp', 'desc');
+                    
+                    const snapshot = await query.get();
+                    reviews = [];
+                    
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        reviews.push({
+                            id: doc.id,
+                            ...data
+                        });
+                    });
+                    
+                    renderAdminPanel();
+                } catch (error) {
+                    console.error('Erro ao carregar avaliações:', error);
+                    const adminContent = document.getElementById('adminContent');
+                    adminContent.innerHTML = `
+                        <div class="error-message">
+                            <p>Erro ao carregar avaliações. Por favor, tente novamente.</p>
+                            <button class="btn-primary" onclick="window.location.reload()">Recarregar</button>
+                        </div>
+                    `;
+                }
+            }
+            
+            // Renderizar painel de administração
+            function renderAdminPanel() {
+                const adminContent = document.getElementById('adminContent');
+                
+                // Criar filtros
+                let filterHTML = `
+                    <div class="admin-filters">
+                        <div class="filter-group">
+                            <label for="productFilter">Produto:</label>
+                            <select id="productFilter">
+                                <option value="all">Todos os Produtos</option>
+                `;
+                
+                // Adicionar opções de produtos
+                for (const [id, name] of Object.entries(productIdToName)) {
+                    filterHTML += `<option value="${id}" ${currentFilter.product === id ? 'selected' : ''}>${name}</option>`;
+                }
+                
+                filterHTML += `
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="statusFilter">Status:</label>
+                            <select id="statusFilter">
+                                <option value="all">Todos os Status</option>
+                                <option value="pending" ${currentFilter.status === 'pending' ? 'selected' : ''}>Pendente</option>
+                                <option value="approved" ${currentFilter.status === 'approved' ? 'selected' : ''}>Aprovado</option>
+                                <option value="rejected" ${currentFilter.status === 'rejected' ? 'selected' : ''}>Rejeitado</option>
+                            </select>
+                        </div>
+                        <button class="btn-primary" id="applyFilters">Aplicar Filtros</button>
+                        <button class="btn-secondary" id="clearFilters">Limpar Filtros</button>
+                    </div>
+                `;
+                
+                // Calcular paginação
+                const totalPages = Math.ceil(reviews.length / itemsPerPage);
+                const startIndex = (currentPage - 1) * itemsPerPage;
+                const endIndex = Math.min(startIndex + itemsPerPage, reviews.length);
+                const currentReviews = reviews.slice(startIndex, endIndex);
+                
+                // Criar tabela de avaliações
+                let tableHTML = `
+                    <table class="reviews-table">
+                        <thead>
+                            <tr>
+                                <th>Produto</th>
+                                <th>Usuário</th>
+                                <th>Avaliação</th>
+                                <th>Comentário</th>
+                                <th>Data</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                if (currentReviews.length === 0) {
+                    tableHTML += `
+                        <tr>
+                            <td colspan="7" style="text-align: center;">Nenhuma avaliação encontrada</td>
+                        </tr>
+                    `;
+                } else {
+                    currentReviews.forEach(review => {
+                        const productName = productIdToName[review.productId] || 'Produto Desconhecido';
+                        const stars = '★'.repeat(review.rating);
+                        const date = review.date ? new Date(review.date).toLocaleDateString('pt-BR') : 'Data desconhecida';
+                        const status = review.status || 'pending';
+                        const statusText = {
+                            'pending': 'Pendente',
+                            'approved': 'Aprovado',
+                            'rejected': 'Rejeitado'
+                        }[status];
+                        const statusClass = `status-${status}`;
+                        
+                        tableHTML += `
+                            <tr data-id="${review.id}">
+                                <td>${productName}</td>
+                                <td>${review.name} ${review.userEmail ? `<br><small>(${review.userEmail})</small>` : ''}</td>
+                                <td><span class="star-rating">${stars}</span> (${review.rating})</td>
+                                <td>${review.comment}</td>
+                                <td>${date}</td>
+                                <td><span class="status-indicator ${statusClass}">${statusText}</span></td>
+                                <td class="review-actions">
+                        `;
+                        
+                        // Adicionar botões de ação dependendo do status
+                        if (status === 'pending') {
+                            tableHTML += `
+                                <button class="btn-approve" data-id="${review.id}">Aprovar</button>
+                                <button class="btn-reject" data-id="${review.id}">Rejeitar</button>
+                            `;
+                        }
+                        
+                        // Sempre adicionar botão de exclusão
+                        tableHTML += `
+                                <button class="btn-delete" data-id="${review.id}">Excluir</button>
+                            </td>
+                        </tr>
+                        `;
+                    });
+                }
+                
+                tableHTML += `
+                        </tbody>
+                    </table>
+                `;
+                
+                // Adicionar paginação
+                let paginationHTML = '';
+                if (totalPages > 1) {
+                    paginationHTML = `
+                        <div class="pagination">
+                            <button id="prevPage" ${currentPage === 1 ? 'disabled' : ''}>Anterior</button>
+                    `;
+                    
+                    for (let i = 1; i <= totalPages; i++) {
+                        paginationHTML += `
+                            <button class="page-number ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>
+                        `;
+                    }
+                    
+                    paginationHTML += `
+                            <button id="nextPage" ${currentPage === totalPages ? 'disabled' : ''}>Próximo</button>
+                        </div>
+                    `;
+                }
+                
+                // Juntar tudo
+                adminContent.innerHTML = filterHTML + tableHTML + paginationHTML;
+                
+                // Adicionar event listeners
+                setupEventListeners();
+            }
+            
+            // Configurar event listeners
+            function setupEventListeners() {
+                // Filtros
+                const applyFiltersBtn = document.getElementById('applyFilters');
+                const clearFiltersBtn = document.getElementById('clearFilters');
+                
+                if (applyFiltersBtn) {
+                    applyFiltersBtn.addEventListener('click', function() {
+                        const productFilter = document.getElementById('productFilter').value;
+                        const statusFilter = document.getElementById('statusFilter').value;
+                        
+                        currentFilter.product = productFilter;
+                        currentFilter.status = statusFilter;
+                        currentPage = 1; // Resetar para primeira página
+                        
+                        loadReviews();
+                    });
+                }
+                
+                if (clearFiltersBtn) {
+                    clearFiltersBtn.addEventListener('click', function() {
+                        currentFilter.product = 'all';
+                        currentFilter.status = 'all';
+                        currentPage = 1;
+                        
+                        // Resetar os selects
+                        document.getElementById('productFilter').value = 'all';
+                        document.getElementById('statusFilter').value = 'all';
+                        
+                        loadReviews();
+                    });
+                }
+                
+                // Paginação
+                const prevPageBtn = document.getElementById('prevPage');
+                const nextPageBtn = document.getElementById('nextPage');
+                const pageButtons = document.querySelectorAll('.page-number');
+                
+                if (prevPageBtn) {
+                    prevPageBtn.addEventListener('click', function() {
+                        if (currentPage > 1) {
+                            currentPage--;
+                            renderAdminPanel();
+                        }
+                    });
+                }
+                
+                if (nextPageBtn) {
+                    nextPageBtn.addEventListener('click', function() {
+                        const totalPages = Math.ceil(reviews.length / itemsPerPage);
+                        if (currentPage < totalPages) {
+                            currentPage++;
+                            renderAdminPanel();
+                        }
+                    });
+                }
+                
+                pageButtons.forEach(button => {
+                    button.addEventListener('click', function() {
+                        currentPage = parseInt(this.dataset.page);
+                        renderAdminPanel();
+                    });
+                });
+                
+                // Botões de ação nas avaliações
+                const approveButtons = document.querySelectorAll('.btn-approve');
+                const rejectButtons = document.querySelectorAll('.btn-reject');
+                const deleteButtons = document.querySelectorAll('.btn-delete');
+                
+                approveButtons.forEach(button => {
+                    button.addEventListener('click', function() {
+                        const reviewId = this.dataset.id;
+                        approveReview(reviewId);
+                    });
+                });
+                
+                rejectButtons.forEach(button => {
+                    button.addEventListener('click', function() {
+                        const reviewId = this.dataset.id;
+                        rejectReview(reviewId);
+                    });
+                });
+                
+                deleteButtons.forEach(button => {
+                    button.addEventListener('click', function() {
+                        const reviewId = this.dataset.id;
+                        deleteReview(reviewId);
+                    });
+                });
+            }
+            
+            // Aprovar avaliação
+            async function approveReview(reviewId) {
+                if (confirm('Tem certeza que deseja aprovar esta avaliação?')) {
+                    try {
+                        await reviewsCollection.doc(reviewId).update({
+                            status: 'approved',
+                            approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            approvedBy: firebase.auth().currentUser.email
+                        });
+                        
+                        // Atualizar lista local
+                        const reviewIndex = reviews.findIndex(r => r.id === reviewId);
+                        if (reviewIndex !== -1) {
+                            reviews[reviewIndex].status = 'approved';
+                        }
+                        
+                        renderAdminPanel();
+                        alert('Avaliação aprovada com sucesso!');
+                    } catch (error) {
+                        console.error('Erro ao aprovar avaliação:', error);
+                        alert('Erro ao aprovar avaliação. Por favor, tente novamente.');
+                    }
+                }
+            }
+            
+            // Rejeitar avaliação
+            async function rejectReview(reviewId) {
+                if (confirm('Tem certeza que deseja rejeitar esta avaliação?')) {
+                    try {
+                        await reviewsCollection.doc(reviewId).update({
+                            status: 'rejected',
+                            rejectedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            rejectedBy: firebase.auth().currentUser.email
+                        });
+                        
+                        // Atualizar lista local
+                        const reviewIndex = reviews.findIndex(r => r.id === reviewId);
+                        if (reviewIndex !== -1) {
+                            reviews[reviewIndex].status = 'rejected';
+                        }
+                        
+                        renderAdminPanel();
+                        alert('Avaliação rejeitada com sucesso!');
+                    } catch (error) {
+                        console.error('Erro ao rejeitar avaliação:', error);
+                        alert('Erro ao rejeitar avaliação. Por favor, tente novamente.');
+                    }
+                }
+            }
+            
+            // Excluir avaliação
+            async function deleteReview(reviewId) {
+                if (confirm('Tem certeza que deseja excluir permanentemente esta avaliação? Esta ação não pode ser desfeita.')) {
+                    try {
+                        await reviewsCollection.doc(reviewId).delete();
+                        
+                        // Atualizar lista local
+                        reviews = reviews.filter(r => r.id !== reviewId);
+                        
+                        renderAdminPanel();
+                        alert('Avaliação excluída com sucesso!');
+                    } catch (error) {
+                        console.error('Erro ao excluir avaliação:', error);
+                        alert('Erro ao excluir avaliação. Por favor, tente novamente.');
+                    }
+                }
+            }
+        });
