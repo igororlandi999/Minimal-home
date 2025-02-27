@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - Minimal Home</title>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
+    <!-- CSS Externo -->
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="checkout.css">
+
+</head>
+
+<body>
+    <!-- Header e Navegação -->
+    <header>
+        <nav>
+            <div class="logo">Minimal Home</div>
+            <!-- Botão de menu para mobile -->
+            <button class="menu-toggle" id="menuToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="nav-links">
+                <a href="../checkout.html#home">Home</a>
+                <a href="../checkout.html#products">Produtos</a>
+                <a href="../checkout.html#about">Sobre</a>
+                <a href="../checkout.html#contact">Contato</a>
+                <a href="#" id="loginBtn" class="login-btn">Login</a>
+                <div id="userMenu" class="user-menu">
+                    <p id="userEmail"></p>
+                    <button onclick="logout()">Sair</button>
+                </div>
+                <!-- Botão do Carrinho -->
+                <a href="#" id="cartBtn" class="cart-btn">
+                    <div class="cart-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="9" cy="21" r="1"></circle>
+                            <circle cx="20" cy="21" r="1"></circle>
+                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                        </svg>
+                        <span class="cart-count">0</span>
+                    </div>
+                </a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Modal de Login e Registro -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div class="modal-header">
+                <h2>Bem-vindo</h2>
+                <p>Faça login ou crie sua conta</p>
+            </div>
+            <form id="authForm" onsubmit="return false;">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" required>
+                    <span class="error" id="emailError"></span>
+                </div>
+                <div class="form-group">
+                    <label for="password">Senha</label>
+                    <input type="password" id="password" required>
+                    <span class="error" id="passwordError"></span>
+                </div>
+                <div class="forgot-password">
+                    <a href="#" id="forgotPasswordLink">Esqueceu sua senha?</a>
+                </div>
+                <div class="auth-buttons">
+                    <button type="button" onclick="login()" id="loginButton">Login</button>
+                    <button type="button" onclick="register()" id="registerButton">Cadastrar</button>
+                </div>
+                <p id="authMessage"></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Redefinição de Senha -->
+    <div id="resetPasswordModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div class="modal-header">
+                <h2>Redefinir Senha</h2>
+                <p>Digite seu email para receber o link de redefinição</p>
+            </div>
+            <form id="resetForm" onsubmit="return false;">
+                <div class="form-group">
+                    <label for="resetEmail">Email</label>
+                    <input type="email" id="resetEmail" required>
+                    <span class="error" id="resetEmailError"></span>
+                </div>
+                <div class="auth-buttons">
+                    <button type="button" onclick="sendPasswordReset()" id="resetButton">Enviar Link</button>
+                    <button type="button" onclick="backToLogin()" id="backToLoginButton">Voltar</button>
+                </div>
+                <p id="resetMessage"></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Carrinho de Compras -->
+    <div id="cartSidebar" class="cart-sidebar">
+        <div class="cart-header">
+            <h2>Seu Carrinho</h2>
+            <button id="closeCart" class="close-cart">&times;</button>
+        </div>
+
+        <div id="cartItems" class="cart-items">
+            <!-- Items do carrinho serão inseridos aqui via JavaScript -->
+            <div class="empty-cart">
+                <p>Seu carrinho está vazio</p>
+                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="9" cy="21" r="1"></circle>
+                    <circle cx="20" cy="21" r="1"></circle>
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                </svg>
+                <a href="../checkout.html#products" class="shop-now-btn">Ver produtos</a>
+            </div>
+        </div>
+
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Total:</span>
+                <span id="cartTotal">R$ 0,00</span>
+            </div>
+            <button id="checkoutBtn" class="checkout-btn" disabled>Finalizar Compra</button>
+        </div>
+    </div>
+
+    <!-- Overlay para quando o carrinho estiver aberto -->
+    <div id="cartOverlay" class="cart-overlay"></div>
+
+    <!-- Checkout Container -->
+    <div class="checkout-container">
+        <div class="checkout-header">
+            <h1>Finalizar Compra</h1>
+            <p>Complete suas informações para finalizar o pedido</p>
+        </div>
+
+        <!-- Checkout Content -->
+        <div class="checkout-content">
+            <!-- Progress Steps -->
+            <div class="checkout-progress">
+                <div class="progress-step active" data-step="1">
+                    <div class="step-number">1</div>
+                    <div class="step-label">Resumo</div>
+                </div>
+                <div class="progress-line"></div>
+                <div class="progress-step" data-step="2">
+                    <div class="step-number">2</div>
+                    <div class="step-label">Endereço</div>
+                </div>
+                <div class="progress-line"></div>
+                <div class="progress-step" data-step="3">
+                    <div class="step-number">3</div>
+                    <div class="step-label">Pagamento</div>
+                </div>
+                <div class="progress-line"></div>
+                <div class="progress-step" data-step="4">
+                    <div class="step-number">4</div>
+                    <div class="step-label">Confirmação</div>
+                </div>
+            </div>
+
+            <!-- Multi-step Form -->
+            <div class="checkout-form-container">
+                <!-- Step 1: Order Summary -->
+                <div class="checkout-step" id="step1">
+                    <h2>Resumo do Pedido</h2>
+                    <div class="order-summary">
+                        <div id="checkoutItems" class="checkout-items">
+                            <!-- Items serão inseridos aqui via JavaScript -->
+                        </div>
+                        <div class="order-totals">
+                            <div class="subtotal">
+                                <span>Subtotal:</span>
+                                <span id="subtotalPrice">R$ 0,00</span>
+                            </div>
+                            <div class="shipping">
+                                <span>Entrega:</span>
+                                <span id="shippingPrice">R$ 0,00</span>
+                            </div>
+                            <div class="total">
+                                <span>Total:</span>
+                                <span id="totalPrice">R$ 0,00</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="checkout-actions">
+                        <a href="../checkout.html#products" class="btn-secondary">Continuar Comprando</a>
+                        <button class="btn-primary next-step" data-next="2">Próximo</button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Shipping Information -->
+                <div class="checkout-step" id="step2" style="display: none;">
+                    <h2>Informações de Entrega</h2>
+                    <div class="checkout-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="fullName">Nome Completo</label>
+                                <input type="text" id="fullName" required>
+                                <span class="error" id="fullNameError"></span>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="address">Endereço</label>
+                                <input type="text" id="address" required>
+                                <span class="error" id="addressError"></span>
+                            </div>
+                        </div>
+                        <div class="form-row two-columns">
+                            <div class="form-group">
+                                <label for="city">Cidade</label>
+                                <input type="text" id="city" required>
+                                <span class="error" id="cityError"></span>
+                            </div>
+                            <div class="form-group">
+                                <label for="state">Estado</label>
+                                <select id="state" required>
+                                    <option value="">Selecione...</option>
+                                    <option value="AC">Acre</option>
+                                    <option value="AL">Alagoas</option>
+                                    <option value="AP">Amapá</option>
+                                    <option value="AM">Amazonas</option>
+                                    <option value="BA">Bahia</option>
+                                    <option value="CE">Ceará</option>
+                                    <option value="DF">Distrito Federal</option>
+                                    <option value="ES">Espírito Santo</option>
+                                    <option value="GO">Goiás</option>
+                                    <option value="MA">Maranhão</option>
+                                    <option value="MT">Mato Grosso</option>
+                                    <option value="MS">Mato Grosso do Sul</option>
+                                    <option value="MG">Minas Gerais</option>
+                                    <option value="PA">Pará</option>
+                                    <option value="PB">Paraíba</option>
+                                    <option value="PR">Paraná</option>
+                                    <option value="PE">Pernambuco</option>
+                                    <option value="PI">Piauí</option>
+                                    <option value="RJ">Rio de Janeiro</option>
+                                    <option value="RN">Rio Grande do Norte</option>
+                                    <option value="RS">Rio Grande do Sul</option>
+                                    <option value="RO">Rondônia</option>
+                                    <option value="RR">Roraima</option>
+                                    <option value="SC">Santa Catarina</option>
+                                    <option value="SP">São Paulo</option>
+                                    <option value="SE">Sergipe</option>
+                                    <option value="TO">Tocantins</option>
+                                </select>
+                                <span class="error" id="stateError"></span>
+                            </div>
+                        </div>
+                        <div class="form-row two-columns">
+                            <div class="form-group">
+                                <label for="postalCode">CEP</label>
+                                <input type="text" id="postalCode" required maxlength="9">
+                                <span class="error" id="postalCodeError"></span>
+                            </div>
+                            <div class="form-group">
+                                <label for="phone">Telefone</label>
+                                <input type="tel" id="phone" required>
+                                <span class="error" id="phoneError"></span>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="shippingMethod">Método de Envio</label>
+                                <div class="shipping-options">
+                                    <div class="shipping-option">
+                                        <input type="radio" id="standard" name="shipping" value="standard" checked>
+                                        <label for="standard">
+                                            <span class="shipping-name">Entrega Padrão</span>
+                                            <span class="shipping-info">5-7 dias úteis</span>
+                                            <span class="shipping-price">R$ 15,90</span>
+                                        </label>
+                                    </div>
+                                    <div class="shipping-option">
+                                        <input type="radio" id="express" name="shipping" value="express">
+                                        <label for="express">
+                                            <span class="shipping-name">Entrega Expressa</span>
+                                            <span class="shipping-info">2-3 dias úteis</span>
+                                            <span class="shipping-price">R$ 29,90</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="checkout-actions">
+                        <button class="btn-secondary prev-step" data-prev="1">Voltar</button>
+                        <button class="btn-primary next-step" data-next="3">Próximo</button>
+                    </div>
+                </div>
+
+                <!-- Step 3: Payment Information -->
+                <div class="checkout-step" id="step3" style="display: none;">
+                    <h2>Informações de Pagamento</h2>
+                    <div class="checkout-form">
+                        <div class="payment-methods">
+                            <div class="payment-method-tabs">
+                                <button class="payment-tab active" data-method="creditCard">Cartão de Crédito</button>
+                                <button class="payment-tab" data-method="boleto">Boleto</button>
+                                <button class="payment-tab" data-method="pix">PIX</button>
+                            </div>
+
+                            <!-- Credit Card Payment Form -->
+                            <div class="payment-form" id="creditCardForm">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="cardNumber">Número do Cartão</label>
+                                        <input type="text" id="cardNumber" maxlength="19"
+                                            placeholder="0000 0000 0000 0000">
+                                        <span class="error" id="cardNumberError"></span>
+                                    </div>
+                                </div>
+                                <div class="form-row two-columns">
+                                    <div class="form-group">
+                                        <label for="cardName">Nome no Cartão</label>
+                                        <input type="text" id="cardName" placeholder="Como aparece no cartão">
+                                        <span class="error" id="cardNameError"></span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="cardExpiry">Validade</label>
+                                        <input type="text" id="cardExpiry" placeholder="MM/AA" maxlength="5">
+                                        <span class="error" id="cardExpiryError"></span>
+                                    </div>
+                                </div>
+                                <div class="form-row two-columns">
+                                    <div class="form-group">
+                                        <label for="cardCVV">CVV</label>
+                                        <input type="text" id="cardCVV" maxlength="4" placeholder="123">
+                                        <span class="error" id="cardCVVError"></span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="installments">Parcelas</label>
+                                        <select id="installments">
+                                            <option value="1">À vista</option>
+                                            <option value="2">2x sem juros</option>
+                                            <option value="3">3x sem juros</option>
+                                            <option value="4">4x sem juros</option>
+                                            <option value="5">5x sem juros</option>
+                                            <option value="6">6x sem juros</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Boleto Payment Form -->
+                            <div class="payment-form" id="boletoForm" style="display: none;">
+                                <div class="boleto-info">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <rect x="3" y="4" width="18" height="16" rx="2" />
+                                        <line x1="7" y1="9" x2="17" y2="9" />
+                                        <line x1="7" y1="13" x2="17" y2="13" />
+                                        <line x1="7" y1="17" x2="11" y2="17" />
+                                    </svg>
+                                    <div class="boleto-text">
+                                        <h3>Pagamento por Boleto Bancário</h3>
+                                        <p>O boleto será gerado após a confirmação do pedido. A confirmação do pagamento
+                                            pode levar até 3 dias úteis.</p>
+                                        <p>Após a confirmação, seu pedido será processado e enviado.</p>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="cpf">CPF (para emissão do boleto)</label>
+                                        <input type="text" id="cpf" maxlength="14" placeholder="000.000.000-00">
+                                        <span class="error" id="cpfError"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- PIX Payment Form -->
+                            <div class="payment-form" id="pixForm" style="display: none;">
+                                <div class="pix-info">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                                    </svg>
+                                    <div class="pix-text">
+                                        <h3>Pagamento via PIX</h3>
+                                        <p>O QR Code para pagamento será gerado na tela de confirmação do pedido. O
+                                            pagamento via PIX é processado instantaneamente.</p>
+                                        <p>Após a confirmação, seu pedido será processado e enviado.</p>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="pixKey">Chave PIX para identificação (opcional)</label>
+                                        <input type="text" id="pixKey" placeholder="CPF, email ou telefone">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="checkout-actions">
+                        <button class="btn-secondary prev-step" data-prev="2">Voltar</button>
+                        <button class="btn-primary next-step" data-next="4" id="placeOrderBtn">Finalizar Pedido</button>
+                    </div>
+                </div>
+
+                <!-- Step 4: Order Confirmation -->
+                <div class="checkout-step" id="step4" style="display: none;">
+                    <div class="order-confirmation">
+                        <div class="confirmation-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                        </div>
+                        <h2>Pedido Realizado com Sucesso!</h2>
+                        <p>Seu pedido foi recebido e está sendo processado.</p>
+                        <div class="order-details">
+                            <div class="order-number">
+                                <span>Número do Pedido:</span>
+                                <span id="orderNumber"></span>
+                            </div>
+                            <div class="order-date">
+                                <span>Data:</span>
+                                <span id="orderDate"></span>
+                            </div>
+                            <div class="order-total">
+                                <span>Valor Total:</span>
+                                <span id="confirmationTotal"></span>
+                            </div>
+                            <div id="paymentDetails" class="payment-details">
+                                <!-- Payment details will be added here via JavaScript -->
+                            </div>
+                        </div>
+                        <p class="confirmation-message">
+                            Você receberá um email com os detalhes do seu pedido em breve.
+                            Obrigado por comprar na Minimal Home!
+                        </p>
+                        <div class="checkout-actions center">
+                            <a href="../checkout.html" class="btn-primary">Voltar para a Loja</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Summary Sidebar (visible on desktop) -->
+            <div class="order-sidebar">
+                <h3>Resumo</h3>
+                <div id="sidebarItems" class="sidebar-items">
+                    <!-- Items will be inserted here via JavaScript -->
+                </div>
+                <div class="sidebar-totals">
+                    <div class="subtotal-row">
+                        <span>Subtotal</span>
+                        <span id="sidebarSubtotal">R$ 0,00</span>
+                    </div>
+                    <div class="shipping-row">
+                        <span>Entrega</span>
+                        <span id="sidebarShipping">R$ 0,00</span>
+                    </div>
+                    <div class="total-row">
+                        <span>Total</span>
+                        <span id="sidebarTotal">R$ 0,00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Externo -->
+    <script src="../script.js"></script>
+    <script src="checkout.js"></script>
+</body>
+
+</html>
