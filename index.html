@@ -6,10 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Minimal Home</title>
 
- <!-- Firebase SDK (com adição do Firestore) -->
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
     <!-- CSS Externo -->
     <link rel="stylesheet" href="styles.css">
@@ -21,7 +21,6 @@
     <header>
         <nav>
             <div class="logo">Minimal Home</div>
-            <!-- Botão de menu para mobile -->
             <button class="menu-toggle" id="menuToggle">
                 <span></span>
                 <span></span>
@@ -37,11 +36,11 @@
                     <p id="userEmail"></p>
                     <button onclick="logout()">Sair</button>
                 </div>
-                <!-- Botão do Carrinho -->
                 <a href="#" id="cartBtn" class="cart-btn">
                     <div class="cart-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round">
                             <circle cx="9" cy="21" r="1"></circle>
                             <circle cx="20" cy="21" r="1"></circle>
                             <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
@@ -107,7 +106,7 @@
         </div>
     </div>
 
-    <!-- Seções do Site -->
+    <!-- Seção Home -->
     <section id="home">
         <div class="section-content">
             <h1>Bem-vindo à Minimal Home</h1>
@@ -152,6 +151,7 @@
         </div>
     </section>
 
+    <!-- Seção Produtos -->
     <section id="products">
         <div class="section-content">
             <h2>Nossos Produtos</h2>
@@ -227,7 +227,7 @@
         </div>
     </section>
 
-    <!-- Substitua a seção atual "about" com este código -->
+    <!-- Seção Sobre Nós -->
     <section id="about">
         <div class="section-content">
             <h2>Sobre Nós</h2>
@@ -329,7 +329,7 @@
         </div>
     </section>
 
-    <!-- Substitua a seção atual "contact" com este código -->
+    <!-- Seção Contato -->
     <section id="contact">
         <div class="section-content">
             <h2>Contato</h2>
@@ -434,7 +434,6 @@
             <div class="contact-map">
                 <h3>Visite Nossa Loja</h3>
                 <div class="map-container">
-                    <!-- Aqui você pode adicionar um mapa do Google Maps ou outra plataforma -->
                     <div class="map-placeholder">
                         <img src="/api/placeholder/1000/400" alt="Mapa da localização">
                     </div>
@@ -444,9 +443,6 @@
     </section>
 
     <!-- Modal de Detalhes do Produto -->
-    <!-- Atualizar o modal de produto em index.html para adicionar espaço para avaliações -->
-    <!-- Substitua a div "product-modal-content" existente por esta versão atualizada -->
-
     <div id="productModal" class="modal">
         <div class="modal-content product-modal-content">
             <span class="close-modal">&times;</span>
@@ -454,9 +450,7 @@
                 <div class="product-modal-image"></div>
                 <div class="product-modal-details">
                     <h2 id="modalProductName"></h2>
-                    <div class="modal-product-rating" id="modalProductRating">
-                        <!-- A classificação será inserida aqui via JavaScript -->
-                    </div>
+                    <div class="modal-product-rating" id="modalProductRating"></div>
                     <p id="modalProductDescription"></p>
                     <p id="modalProductPrice" class="modal-price"></p>
                     <div class="product-quantity">
@@ -468,53 +462,57 @@
                         </div>
                     </div>
                     <button class="add-to-cart-btn">Adicionar ao Carrinho</button>
-
-                    <!-- O conteúdo de avaliações será inserido aqui pelo JavaScript -->
                     <div class="product-reviews-section">
-                        <div id="productReviews">
-                            <!-- Conteúdo de avaliações será adicionado via JavaScript -->
-                        </div>
+                        <div id="productReviews"></div>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Carrinho de Compras -->
-        <div id="cartSidebar" class="cart-sidebar">
-            <div class="cart-header">
-                <h2>Seu Carrinho</h2>
-                <button id="closeCart" class="close-cart">&times;</button>
-            </div>
+    <!-- Carrinho de Compras -->
+    <div id="cartSidebar" class="cart-sidebar">
+        <div class="cart-header">
+            <h2>Seu Carrinho</h2>
+            <button id="closeCart" class="close-cart">&times;</button>
+        </div>
 
-            <div id="cartItems" class="cart-items">
-                <!-- Items do carrinho serão inseridos aqui via JavaScript -->
-                <div class="empty-cart">
-                    <p>Seu carrinho está vazio</p>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="9" cy="21" r="1"></circle>
-                        <circle cx="20" cy="21" r="1"></circle>
-                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-                    </svg>
-                    <a href="#products" class="shop-now-btn">Ver produtos</a>
-                </div>
-            </div>
-
-            <div class="cart-footer">
-                <div class="cart-total">
-                    <span>Total:</span>
-                    <span id="cartTotal">R$ 0,00</span>
-                </div>
-                <button id="checkoutBtn" class="checkout-btn" disabled>Finalizar Compra</button>
+        <div id="cartItems" class="cart-items">
+            <div class="empty-cart">
+                <p>Seu carrinho está vazio</p>
+                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="9" cy="21" r="1"></circle>
+                    <circle cx="20" cy="21" r="1"></circle>
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                </svg>
+                <a href="#products" class="shop-now-btn">Ver produtos</a>
             </div>
         </div>
 
-        <!-- Overlay para quando o carrinho estiver aberto -->
-        <div id="cartOverlay" class="cart-overlay"></div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Total:</span>
+                <span id="cartTotal">R$ 0,00</span>
+            </div>
+            <button id="checkoutBtn" class="checkout-btn" disabled>Finalizar Compra</button>
+        </div>
+    </div>
 
-        <!-- JavaScript Externo -->
-        <script src="script.js"></script>
-        <script src="product-reviews.js"></script>
+    <!-- Overlay para quando o carrinho estiver aberto -->
+    <div id="cartOverlay" class="cart-overlay"></div>
+
+    <!-- JavaScript Externo -->
+    <script src="script.js"></script>
+    <script src="product-reviews.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.cartManager && typeof window.cartManager.init === 'function') {
+                window.cartManager.init();
+            }
+        });
+    </script>
 </body>
 
 </html>

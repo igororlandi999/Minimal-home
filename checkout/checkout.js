@@ -1,3 +1,5 @@
+
+
 document.addEventListener('DOMContentLoaded', function() {
     // Checkout Manager
     const checkoutManager = (() => {

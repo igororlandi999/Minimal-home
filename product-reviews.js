@@ -1,4 +1,4 @@
-// Sistema de Avaliações de Produtos integrado com Firebase
+// Sistema de Avaliações de Produtos integrado com Firebase - VERSÃO CORRIGIDA
 document.addEventListener('DOMContentLoaded', function() {
     // Inicializar o sistema de avaliações
     const productReviewSystem = (() => {
@@ -34,9 +34,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     const productInfo = card.querySelector('.product-info');
                     const priceElement = card.querySelector('.product-price');
                     
-                    // Calcular classificação média
-                    const averageRating = calculateAverageRating(reviewsCache[productId]);
-                    const reviewCount = reviewsCache[productId].length;
+                    // Calcular classificação média - APENAS APROVADAS
+                    const approvedReviews = reviewsCache[productId].filter(review => review.status === 'approved');
+                    const averageRating = calculateAverageRating(approvedReviews);
+                    const reviewCount = approvedReviews.length;
                     
                     // Criar elemento de classificação
                     const ratingElement = document.createElement('div');
@@ -75,7 +76,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         rating: review.rating,
                         comment: review.comment,
                         date: review.date,
-                        userId: review.userId || null
+                        userId: review.userId || null,
+                        status: review.status || 'pending' // Garantir que o status exista
                     });
                 });
                 
@@ -88,6 +90,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Carregar avaliações para um produto específico
         async function loadProductReviews(productId) {
             try {
+                // Modificado para carregar apenas avaliações aprovadas para exibição
                 const snapshot = await reviewsCollection
                     .where('productId', '==', productId)
                     .get();
@@ -101,7 +104,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         rating: review.rating,
                         comment: review.comment,
                         date: review.date,
-                        userId: review.userId || null
+                        userId: review.userId || null,
+                        status: review.status || 'pending'
                     });
                 });
                 
@@ -148,7 +152,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!productReviews) return;
             
             // Carregar avaliações atualizadas do Firebase
-            const productReviewsList = await loadProductReviews(productId);
+            const allProductReviews = await loadProductReviews(productId);
+            
+            // Filtrar apenas avaliações aprovadas para exibição
+            const productReviewsList = allProductReviews.filter(review => review.status === 'approved');
+            
             const averageRating = calculateAverageRating(productReviewsList);
             const reviewCount = productReviewsList.length;
             
@@ -221,13 +229,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 reviewsHTML += '</div>';
             } else {
-                reviewsHTML += '<p>Ainda não há avaliações para este produto. Seja o primeiro a avaliar!</p>';
+                reviewsHTML += '<p>Ainda não há avaliações aprovadas para este produto. Seja o primeiro a avaliar!</p>';
             }
             
             // Formulário de avaliação
             reviewsHTML += `
                 <div class="review-form">
                     <h4>Deixe sua avaliação</h4>
+                    <p class="review-note">Sua avaliação será analisada por nossa equipe antes de ser publicada.</p>
                     <div class="star-rating-select" id="ratingSelect">
                         <span class="star" data-rating="1">★</span>
                         <span class="star" data-rating="2">★</span>
@@ -363,7 +372,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         comment: comment,
                         date: new Date().toISOString().split('T')[0], // Data atual no formato YYYY-MM-DD
                         userId: user.uid,
-                        userEmail: user.email
+                        userEmail: user.email,
+                        status: 'pending' // Todas as avaliações começam como pendentes
                     }).then(() => {
                         // Atualizar a exibição
                         updateProductReviews(productId);
@@ -373,7 +383,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         resetForm();
                         
                         // Feedback para o usuário
-                        alert('Sua avaliação foi enviada com sucesso! Obrigado pelo feedback.');
+                        alert('Sua avaliação foi enviada e será analisada por nossa equipe antes de ser publicada. Obrigado pelo feedback!');
                     }).catch(error => {
                         console.error("Erro ao salvar avaliação:", error);
                         alert('Ocorreu um erro ao enviar sua avaliação. Por favor, tente novamente.');
@@ -395,7 +405,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Adicionar nova avaliação ao Firebase
         async function addReview(productId, review) {
             try {
-                // Adicionar ao Firestore
+                // Adicionar ao Firestore com status pendente
                 const docRef = await reviewsCollection.add({
                     productId: productId,
                     name: review.name,
@@ -404,6 +414,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     date: review.date,
                     userId: review.userId,
                     userEmail: review.userEmail,
+                    status: 'pending', // Todas as novas avaliações começam como pendentes
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 
@@ -416,8 +427,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 reviewsCache[productId].push(review);
                 
-                // Atualizar os cards de produtos
-                initProductCards();
+                // Atualizar os cards de produtos - não é necessário aqui pois só mostramos aprovadas
+                // initProductCards();
                 
                 return docRef;
             } catch (error) {

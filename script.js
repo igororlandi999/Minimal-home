@@ -324,22 +324,44 @@ document.addEventListener('DOMContentLoaded', function () {
 // GERENCIAMENTO DO CARRINHO
 // =================================
 
+// Revisão completa do objeto cartManager para garantir que funcione corretamente
+
 const cartManager = (() => {
     // Estado do carrinho
     let cart = [];
+    let initialized = false;
 
     // Elementos DOM
-    const cartBtn = document.getElementById('cartBtn');
-    const cartSidebar = document.getElementById('cartSidebar');
-    const cartOverlay = document.getElementById('cartOverlay');
-    const closeCartBtn = document.getElementById('closeCart');
-    const cartItemsContainer = document.getElementById('cartItems');
-    const cartCountElement = document.querySelector('.cart-count');
-    const cartTotalElement = document.getElementById('cartTotal');
-    const checkoutBtn = document.getElementById('checkoutBtn');
+    let cartBtn;
+    let cartSidebar;
+    let cartOverlay;
+    let closeCartBtn;
+    let cartItemsContainer;
+    let cartCountElement;
+    let cartTotalElement;
+    let checkoutBtn;
 
     // Inicialização
     function init() {
+        if (initialized) return;
+
+        // Obter todos os elementos DOM necessários
+        cartBtn = document.getElementById('cartBtn');
+        cartSidebar = document.getElementById('cartSidebar');
+        cartOverlay = document.getElementById('cartOverlay');
+        closeCartBtn = document.getElementById('closeCart');
+        cartItemsContainer = document.getElementById('cartItems');
+        cartCountElement = document.querySelector('.cart-count');
+        cartTotalElement = document.getElementById('cartTotal');
+        checkoutBtn = document.getElementById('checkoutBtn');
+
+        // Verificar se todos os elementos existem
+        if (!cartBtn || !cartSidebar || !cartOverlay || !closeCartBtn || 
+            !cartItemsContainer || !cartCountElement || !cartTotalElement || !checkoutBtn) {
+            console.error("Alguns elementos necessários para o carrinho não foram encontrados.");
+            return;
+        }
+
         // Carregar carrinho do localStorage, se existir
         loadCart();
 
@@ -348,6 +370,9 @@ const cartManager = (() => {
 
         // Atualizar a UI do carrinho
         updateCartUI();
+
+        initialized = true;
+        console.log("Carrinho inicializado com sucesso!");
     }
 
     // Configurar event listeners
@@ -355,14 +380,23 @@ const cartManager = (() => {
         // Abrir carrinho
         cartBtn.addEventListener('click', function (e) {
             e.preventDefault();
+            e.stopPropagation();
             openCart();
+            console.log("Botão do carrinho clicado, abrindo carrinho");
         });
 
         // Fechar carrinho (botão X)
-        closeCartBtn.addEventListener('click', closeCart);
+        closeCartBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            closeCart();
+            console.log("Botão fechar carrinho clicado, fechando carrinho");
+        });
 
         // Fechar carrinho (clique no overlay)
-        cartOverlay.addEventListener('click', closeCart);
+        cartOverlay.addEventListener('click', function(e) {
+            closeCart();
+            console.log("Overlay clicado, fechando carrinho");
+        });
 
         // Checkout button
         checkoutBtn.addEventListener('click', function () {
@@ -373,9 +407,9 @@ const cartManager = (() => {
         });
 
         // Adicionar evento para o botão "Adicionar ao Carrinho" na modal de produto
-        const addToCartBtn = document.querySelector('.add-to-cart-btn');
-        if (addToCartBtn) {
-            addToCartBtn.addEventListener('click', function () {
+        document.addEventListener('click', function(e) {
+            // Verificar se o clique foi no botão "Adicionar ao Carrinho"
+            if (e.target.classList.contains('add-to-cart-btn')) {
                 const modalProductName = document.getElementById('modalProductName').textContent;
                 const modalProductPrice = document.getElementById('modalProductPrice').textContent;
                 const modalProductImage = document.querySelector('.product-modal-image').style.backgroundImage;
@@ -396,13 +430,19 @@ const cartManager = (() => {
                 // Fechar o modal de produto
                 const productModal = document.getElementById('productModal');
                 if (productModal) {
-                    closeModal(productModal);
+                    const closeModalFn = window.closeModal || function(modal) {
+                        modal.classList.remove('active');
+                        setTimeout(() => {
+                            modal.style.display = 'none';
+                        }, 300);
+                    };
+                    closeModalFn(productModal);
                 }
 
                 // Abrir o carrinho
                 openCart();
-            });
-        }
+            }
+        });
     }
 
     // Gerar ID para o produto baseado no nome
@@ -466,9 +506,12 @@ const cartManager = (() => {
 
     // Abrir o carrinho
     function openCart() {
+        if (!initialized) init();
+        
         cartSidebar.classList.add('active');
         cartOverlay.classList.add('active');
         document.body.style.overflow = 'hidden'; // Impede o scroll da página
+        console.log("Carrinho aberto");
     }
 
     // Fechar o carrinho
@@ -476,10 +519,13 @@ const cartManager = (() => {
         cartSidebar.classList.remove('active');
         cartOverlay.classList.remove('active');
         document.body.style.overflow = ''; // Restaura o scroll da página
+        console.log("Carrinho fechado");
     }
 
     // Atualizar a UI do carrinho
     function updateCartUI() {
+        if (!initialized) return;
+        
         // Atualizar contador de itens
         cartCountElement.textContent = cart.reduce((count, item) => count + item.quantity, 0);
 
@@ -579,7 +625,12 @@ const cartManager = (() => {
     function loadCart() {
         const savedCart = localStorage.getItem('minimalHomeCart');
         if (savedCart) {
-            cart = JSON.parse(savedCart);
+            try {
+                cart = JSON.parse(savedCart);
+            } catch (e) {
+                console.error("Erro ao carregar carrinho do localStorage:", e);
+                cart = [];
+            }
         }
     }
 
@@ -590,9 +641,21 @@ const cartManager = (() => {
         removeFromCart,
         updateQuantity,
         openCart,
-        closeCart
+        closeCart,
+        lazyInit: function() {
+            init(); // Inicializa o carrinho
+        }
     };
 })();
+
+// Garantir que o cartManager seja exposto globalmente
+window.cartManager = cartManager;
+
+// Inicializar o carrinho quando a página for carregada
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("DOM carregado, inicializando carrinho...");
+    cartManager.init();
+});
 
 // =================================
 // CARROSSEL DE BANNERS
@@ -668,6 +731,8 @@ document.addEventListener('DOMContentLoaded', function () {
         slideInterval = setInterval(autoSlide, 5000);
     });
 });
+
+
 
 // Expor o cartManager para uso global
 window.cartManager = cartManager;

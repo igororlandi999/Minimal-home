@@ -1494,3 +1494,33 @@ section {
         grid-template-columns: repeat(4, 1fr);
     }
 }
+
+/* Garantir scroll suave e correto */
+html, body {
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+}
+
+body {
+    position: relative;
+    min-height: 100vh;
+    overflow-y: auto;
+}
+
+/* Certificar que o header não bloqueie o conteúdo */
+section {
+    scroll-margin-top: 60px; /* Altura do header */
+}
+
+/* Corrigir rolagem quando modal ou carrinho está aberto */
+body.no-scroll {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+}
+
+/* Suavizar transições de modais e sidebars */
+.cart-sidebar,
+.modal {
+    transition: all 0.3s ease;
+}
