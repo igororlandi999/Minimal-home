@@ -1524,3 +1524,127 @@ body.no-scroll {
 .modal {
     transition: all 0.3s ease;
 }
+
+/* Adicione estes estilos ao seu arquivo styles.css */
+
+/* Centralizar a logo com o carrossel */
+.home-logo-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+    padding: 20px 0;
+    max-width: 1000px; /* Mesma largura máxima do carrossel em telas grandes */
+}
+
+.home-logo-image {
+    max-width: 100%;
+    height: auto;
+    max-height: 120px; /* Ajuste conforme necessário */
+}
+
+/* Garantir que o carrossel e a logo estejam centralizados no mesmo eixo */
+.carousel-container {
+    margin: 0 auto;
+}
+
+/* Ajustar a seção home para alinhar melhor os elementos */
+#home .section-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 1000px; /* Mesma largura máxima do carrossel */
+    margin: 0 auto;
+}
+
+/* Garantir que a seção home tenha flexbox para alinhar corretamente */
+#home {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Adicione estes estilos ao seu arquivo styles.css */
+
+/* CSS Combinado para os cards da equipe - centralizados e mais largos */
+
+/* Centralizar os cards da equipe */
+.team-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 25px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Aumentar a largura dos cards da equipe */
+.team-member {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 450px; /* Aumentei para cards mais largos */
+    margin-bottom: 20px;
+}
+
+/* Ajustar a altura da foto do membro */
+.member-photo {
+    width: 100%;
+    height: 350px;
+    object-fit: cover;
+    object-position: center;
+}
+
+/* Verificar que o título da seção também está centralizado */
+.about-team h3 {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+/* Garantir que a seção inteira esteja centralizada */
+.about-team {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Se a seção about container também precisa ser centralizada */
+.about-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Garantir que o texto dentro do card também fique bem proporcionado */
+.team-member h4 {
+    font-size: 1.4rem;
+    margin: 20px 0 8px;
+}
+
+.team-member p {
+    font-size: 1rem;
+    margin-bottom: 20px;
+}
+
+/* Media query para telas maiores */
+@media (min-width: 768px) {
+    .team-grid {
+        justify-content: center;
+    }
+    
+    .team-member {
+        width: calc(50% - 25px);
+        max-width: 450px;
+    }
+}
+
+@media (min-width: 992px) {
+    .team-member {
+        width: calc(40% - 25px);
+        min-width: 400px;
+    }
+}
+

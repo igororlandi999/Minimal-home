@@ -1,6 +1,9 @@
-
-
 document.addEventListener('DOMContentLoaded', function() {
+    // Inicialização do Mercado Pago SDK
+    const mp = new MercadoPago('TEST-f7c3f39d-7df7-42b0-96d6-9393f63cfde8', {
+        locale: 'pt-BR'
+    });
+    
     // Checkout Manager
     const checkoutManager = (() => {
         // Variables
@@ -54,6 +57,67 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Format input fields
             setupInputFormatting();
+            
+            // Setup Mercado Pago form
+            setupMercadoPagoForm();
+        }
+        
+        // Setup Mercado Pago form
+        function setupMercadoPagoForm() {
+            const cardForm = mp.cardForm({
+                amount: calculateTotal().toString(),
+                form: {
+                    id: "creditCardForm",
+                    cardNumber: {
+                        id: "cardNumber",
+                        placeholder: "Número do cartão",
+                    },
+                    expirationDate: {
+                        id: "cardExpiry",
+                        placeholder: "MM/YY",
+                    },
+                    securityCode: {
+                        id: "cardCVV",
+                        placeholder: "Código de segurança",
+                    },
+                    cardholderName: {
+                        id: "cardName",
+                        placeholder: "Titular do cartão",
+                    },
+                    installments: {
+                        id: "installments",
+                        placeholder: "Parcelas",
+                    }
+                },
+                callbacks: {
+                    onFormMounted: error => {
+                        if (error) console.log("Form mounted error:", error);
+                    },
+                    onFormUnmounted: error => {
+                        if (error) console.log("Form unmounted error:", error);
+                    },
+                    onIdentificationTypesReceived: (error, identificationTypes) => {
+                        if (error) console.log("Identification types error:", error);
+                    },
+                    onPaymentMethodsReceived: (error, paymentMethods) => {
+                        if (error) console.log("Payment methods error:", error);
+                    },
+                    onIssuersReceived: (error, issuers) => {
+                        if (error) console.log("Issuers error:", error);
+                    },
+                    onInstallmentsReceived: (error, installments) => {
+                        if (error) console.log("Installments error:", error);
+                    },
+                    onCardTokenReceived: (error, token) => {
+                        if (error) console.log("Token error:", error);
+                        else {
+                            // Armazenar o token para usar na hora do processamento do pagamento
+                            orderDetails.payment = orderDetails.payment || {};
+                            orderDetails.payment.token = token;
+                        }
+                    }
+                }
+            });
         }
         
         // Get cart from localStorage
@@ -325,64 +389,17 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Validate credit card info
         function validateCreditCardInfo() {
-            let isValid = true;
-            const requiredFields = [
-                { input: cardNumberInput, error: 'cardNumberError', message: 'Número do cartão é obrigatório' },
-                { input: cardNameInput, error: 'cardNameError', message: 'Nome no cartão é obrigatório' },
-                { input: cardExpiryInput, error: 'cardExpiryError', message: 'Data de validade é obrigatória' },
-                { input: cardCVVInput, error: 'cardCVVError', message: 'CVV é obrigatório' }
-            ];
-            
-            // Check required fields
-            requiredFields.forEach(field => {
-                const errorElement = document.getElementById(field.error);
-                if (!field.input || !errorElement) return;
-                
-                if (!field.input.value.trim()) {
-                    errorElement.textContent = field.message;
-                    errorElement.style.display = 'block';
-                    field.input.style.borderColor = 'var(--error-color)';
-                    isValid = false;
-                } else {
-                    errorElement.style.display = 'none';
-                    field.input.style.borderColor = 'var(--border-color)';
-                }
-            });
-            
-            // Validate card number format
-            if (cardNumberInput && cardNumberInput.value.trim() && cardNumberInput.value.replace(/\s/g, '').length < 16) {
+            // Ao usar o Mercado Pago, a validação é feita pelo SDK
+            // Verificamos apenas se o token de pagamento foi gerado
+            if (!orderDetails.payment || !orderDetails.payment.token) {
                 const errorElement = document.getElementById('cardNumberError');
                 if (errorElement) {
-                    errorElement.textContent = 'Número do cartão inválido';
+                    errorElement.textContent = 'Por favor, preencha os dados do cartão corretamente';
                     errorElement.style.display = 'block';
-                    cardNumberInput.style.borderColor = 'var(--error-color)';
-                    isValid = false;
                 }
+                return false;
             }
-            
-            // Validate expiry date format
-            if (cardExpiryInput && cardExpiryInput.value.trim() && !cardExpiryInput.value.match(/^\d{2}\/\d{2}$/)) {
-                const errorElement = document.getElementById('cardExpiryError');
-                if (errorElement) {
-                    errorElement.textContent = 'Data inválida (formato: MM/AA)';
-                    errorElement.style.display = 'block';
-                    cardExpiryInput.style.borderColor = 'var(--error-color)';
-                    isValid = false;
-                }
-            }
-            
-            // Validate CVV format
-            if (cardCVVInput && cardCVVInput.value.trim() && (cardCVVInput.value.length < 3 || cardCVVInput.value.length > 4)) {
-                const errorElement = document.getElementById('cardCVVError');
-                if (errorElement) {
-                    errorElement.textContent = 'CVV inválido';
-                    errorElement.style.display = 'block';
-                    cardCVVInput.style.borderColor = 'var(--error-color)';
-                    isValid = false;
-                }
-            }
-            
-            return isValid;
+            return true;
         }
         
         // Validate boleto info
@@ -420,8 +437,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const paymentMethod = activeTab ? activeTab.dataset.method : 'creditCard';
             
             // Generate order details
+            const orderId = generateOrderId();
+            
             orderDetails = {
-                orderId: generateOrderId(),
+                orderId: orderId,
                 orderDate: new Date().toLocaleDateString('pt-BR'),
                 items: cart,
                 customer: {
@@ -430,7 +449,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     city: cityInput ? cityInput.value : '',
                     state: stateInput ? stateInput.value : '',
                     postalCode: postalCodeInput ? postalCodeInput.value : '',
-                    phone: phoneInput ? phoneInput.value : ''
+                    phone: phoneInput ? phoneInput.value : '',
+                    userId: firebase.auth().currentUser ? firebase.auth().currentUser.uid : null,
+                    email: firebase.auth().currentUser ? firebase.auth().currentUser.email : null
                 },
                 shipping: {
                     method: document.querySelector('input[name="shipping"]:checked')?.value || 'standard',
@@ -444,14 +465,243 @@ document.addEventListener('DOMContentLoaded', function() {
                     subtotal: calculateSubtotal(),
                     shipping: shippingPrice,
                     total: calculateTotal()
+                },
+                status: 'pending',
+                paymentStatus: 'pending',
+                createdAt: new Date().toISOString()
+            };
+
+            // Salvar o pedido no Firestore
+            saveOrderToFirestore(orderId.substring(1), orderDetails)
+                .then(() => {
+                    console.log('Pedido salvo com sucesso no Firestore!');
+                    
+                    // Processar pagamento baseado no método
+                    if (paymentMethod === 'creditCard') {
+                        processCreditCardPayment();
+                    } else if (paymentMethod === 'boleto') {
+                        processBoletoPayment();
+                    } else if (paymentMethod === 'pix') {
+                        processPixPayment();
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro ao salvar pedido no Firestore:', error);
+                    alert('Ocorreu um erro ao processar seu pedido. Por favor, tente novamente.');
+                });
+        }
+
+        // Salvar pedido no Firestore
+        function saveOrderToFirestore(orderId, orderData) {
+            const db = firebase.firestore();
+            const orderRef = db.collection('orders').doc(orderId);
+            
+            // Remover campos sensíveis antes de salvar
+            if (orderData.payment.details && orderData.payment.details.cardNumber) {
+                // Mantém apenas os últimos 4 dígitos do cartão
+                orderData.payment.details.cardLast4 = orderData.payment.details.cardNumber.slice(-4);
+                delete orderData.payment.details.cardNumber;
+            }
+            
+            // Não salvar o token do cartão no Firestore
+            const tokenTemp = orderData.payment.token;
+            delete orderData.payment.token;
+            
+            return orderRef.set(orderData)
+                .then(() => {
+                    // Restaurar o token para uso no processamento do pagamento
+                    orderData.payment.token = tokenTemp;
+                    return Promise.resolve();
+                });
+        }
+
+        // Função para processar pagamento com cartão de crédito
+        function processCreditCardPayment() {
+            // O SDK do Mercado Pago já terá gerado o token do cartão
+            // Agora precisamos enviar para o backend processar
+            
+            const paymentData = {
+                description: "Compra na Minimal Home",
+                transaction_amount: parseFloat(orderDetails.totals.total),
+                installments: parseInt(document.getElementById('installments').value || "1"),
+                token: orderDetails.payment.token,
+                payment_method_id: document.querySelector('.paymentMethodId')?.value || "master",
+                external_reference: orderDetails.orderId.substring(1), // Remover o '#' do início
+                payer: {
+                    email: firebase.auth().currentUser?.email || "cliente@example.com",
+                    identification: {
+                        type: document.querySelector('.identificationType')?.value || "CPF",
+                        number: document.querySelector('.identificationNumber')?.value || "12345678909"
+                    }
+                },
+                additional_info: {
+                    items: orderDetails.items.map(item => ({
+                        id: item.id,
+                        title: item.name,
+                        description: item.name,
+                        quantity: item.quantity,
+                        unit_price: item.price
+                    })),
+                    shipments: {
+                        receiver_address: {
+                            zip_code: orderDetails.customer.postalCode.replace('-', ''),
+                            street_name: orderDetails.customer.address,
+                            city_name: orderDetails.customer.city,
+                            state_name: orderDetails.customer.state
+                        }
+                    }
+                }
+            };
+
+            // Enviar o pagamento para processamento no backend via API
+            // Em um ambiente real, você enviaria esta requisição para seu backend
+            // que processaria o pagamento com as credenciais privadas do Mercado Pago
+            console.log("Enviando dados do pagamento para processamento:", paymentData);
+            
+            // Simulação - em produção, isso seria processado pelo seu backend
+            mockProcessPayment(paymentData, "creditCard")
+                .then(response => {
+                    // Atualizar status do pedido no Firestore
+                    updateOrderPaymentStatus(orderDetails.orderId.substring(1), 'approved', response.id);
+                    
+                    // Mostrar confirmação para o usuário
+                    displayOrderConfirmation();
+                    
+                    // Limpar carrinho
+                    localStorage.removeItem('minimalHomeCart');
+                })
+                .catch(error => {
+                    console.error("Erro ao processar pagamento:", error);
+                    alert("Não foi possível processar seu pagamento. Por favor, tente novamente.");
+                });
+        }
+
+        // Função para processar pagamento com boleto
+        function processBoletoPayment() {
+            const cpf = cpfInput ? cpfInput.value.replace(/[^\d]/g, '') : '';
+            
+            const boletoData = {
+                description: "Compra na Minimal Home",
+                transaction_amount: parseFloat(orderDetails.totals.total),
+                payment_method_id: "bolbradesco",
+                external_reference: orderDetails.orderId.substring(1), // Remover o '#' do início
+                payer: {
+                    email: firebase.auth().currentUser?.email || "cliente@example.com",
+                    identification: {
+                        type: "CPF",
+                        number: cpf
+                    },
+                    first_name: orderDetails.customer.name.split(' ')[0],
+                    last_name: orderDetails.customer.name.split(' ').slice(1).join(' '),
+                    address: {
+                        zip_code: orderDetails.customer.postalCode.replace('-', ''),
+                        street_name: orderDetails.customer.address,
+                        street_number: "123", // Necessário adicionar campo no formulário
+                        neighborhood: "Bairro", // Necessário adicionar campo no formulário
+                        city: orderDetails.customer.city,
+                        federal_unit: orderDetails.customer.state
+                    }
                 }
             };
             
-            // Display order confirmation
-            displayOrderConfirmation();
+            // Enviar o pagamento para processamento no backend via API
+            console.log("Enviando dados do boleto para processamento:", boletoData);
             
-            // Clear cart
-            localStorage.removeItem('minimalHomeCart');
+            // Simulação - em produção, isso seria processado pelo seu backend
+            mockProcessPayment(boletoData, "boleto")
+                .then(response => {
+                    // Atualizar status do pedido no Firestore
+                    updateOrderPaymentStatus(orderDetails.orderId.substring(1), 'pending', response.id);
+                    
+                    // Salvar URL do boleto no orderDetails para exibição
+                    orderDetails.payment.boletoUrl = "https://www.mercadopago.com.br/sandbox/payments/12345678/ticket";
+                    
+                    // Mostrar confirmação para o usuário
+                    displayOrderConfirmation();
+                    
+                    // Limpar carrinho
+                    localStorage.removeItem('minimalHomeCart');
+                })
+                .catch(error => {
+                    console.error("Erro ao gerar boleto:", error);
+                    alert("Não foi possível gerar o boleto. Por favor, tente novamente.");
+                });
+        }
+
+        // Função para processar pagamento com PIX
+        function processPixPayment() {
+            const pixData = {
+                description: "Compra na Minimal Home",
+                transaction_amount: parseFloat(orderDetails.totals.total),
+                payment_method_id: "pix",
+                external_reference: orderDetails.orderId.substring(1), // Remover o '#' do início
+                payer: {
+                    email: firebase.auth().currentUser?.email || "cliente@example.com",
+                    first_name: orderDetails.customer.name.split(' ')[0],
+                    last_name: orderDetails.customer.name.split(' ').slice(1).join(' ')
+                }
+            };
+            
+            // Enviar o pagamento para processamento no backend via API
+            console.log("Enviando dados do PIX para processamento:", pixData);
+            
+            // Simulação - em produção, isso seria processado pelo seu backend
+            mockProcessPayment(pixData, "pix")
+                .then(response => {
+                    // Atualizar status do pedido no Firestore
+                    updateOrderPaymentStatus(orderDetails.orderId.substring(1), 'pending', response.id);
+                    
+                    // Salvar código PIX no orderDetails para exibição
+                    orderDetails.payment.pixQrCode = "00020101021226860014br.gov.bcb.pix2564qrcodepix-h.mp.com/v2/ABCDEFGHIJKLMNOPQRSTUVWXYZ12345";
+                    orderDetails.payment.pixQrCodeBase64 = "iVBORw0KGgoAAAANSUhEUgAAAQAAAAEAAQMAAABmvDolAAAAA1BMVEX///+nxBvIAAAAAXRSTlMAQObYZgAAAB5JREFUeNrtwQEBAAAAgJD+r+4ICgAAAAAAAAAAABgmAAGdteNdAAAAAElFTkSuQmCC";
+                    
+                    // Mostrar confirmação para o usuário
+                    displayOrderConfirmation();
+                    
+                    // Limpar carrinho
+                    localStorage.removeItem('minimalHomeCart');
+                })
+                .catch(error => {
+                    console.error("Erro ao gerar PIX:", error);
+                    alert("Não foi possível gerar o código PIX. Por favor, tente novamente.");
+                });
+        }
+
+        // Função para atualizar o status de pagamento do pedido no Firestore
+        function updateOrderPaymentStatus(orderId, status, paymentId) {
+            const db = firebase.firestore();
+            const orderRef = db.collection('orders').doc(orderId);
+            
+            return orderRef.update({
+                paymentStatus: status,
+                paymentId: paymentId,
+                lastUpdated: new Date().toISOString()
+            })
+            .then(() => {
+                console.log(`Status de pagamento do pedido ${orderId} atualizado para ${status}`);
+            })
+            .catch(error => {
+                console.error("Erro ao atualizar status do pedido:", error);
+            });
+        }
+
+        // Simulação do processamento de pagamento (mock)
+        function mockProcessPayment(paymentData, method) {
+            return new Promise((resolve, reject) => {
+                // Simulando resposta do servidor após 1.5 segundos
+                setTimeout(() => {
+                    // Gera um ID de pagamento aleatório
+                    const paymentId = Math.floor(Math.random() * 1000000000).toString();
+                    
+                    // Simulando resposta do servidor
+                    resolve({
+                        id: paymentId,
+                        status: method === 'creditCard' ? 'approved' : 'pending',
+                        external_reference: paymentData.external_reference,
+                        payment_method_id: paymentData.payment_method_id
+                    });
+                }, 1500);
+            });
         }
         
         // Generate order ID
@@ -488,7 +738,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const lastFourDigits = cardNumber.replace(/\s/g, '').slice(-4);
             return `**** **** **** ${lastFourDigits}`;
         }
-        
+                
         // Display order confirmation
         function displayOrderConfirmation() {
             // Set order details
@@ -506,16 +756,40 @@ document.addEventListener('DOMContentLoaded', function() {
                 let paymentHTML = `<h4>Forma de Pagamento: `;
                 
                 if (orderDetails.payment.method === 'creditCard') {
-                    paymentHTML += `Cartão de Crédito</h4>
+                    paymentHTML += `Cartão de Crédito (Mercado Pago)</h4>
                     <p>Número: ${orderDetails.payment.details.cardNumber}</p>
-                    <p>Parcelas: ${orderDetails.payment.details.installments}x</p>`;
+                    <p>Parcelas: ${orderDetails.payment.details.installments}x</p>
+                    <p>Pagamento processado pelo Mercado Pago</p>`;
                 } else if (orderDetails.payment.method === 'boleto') {
-                    paymentHTML += `Boleto Bancário</h4>
+                    paymentHTML += `Boleto Bancário (Mercado Pago)</h4>
                     <p>CPF: ${orderDetails.payment.details.cpf}</p>
                     <p>O boleto será enviado para seu email em instantes.</p>`;
+                    
+                    // Se tiver URL do boleto (em produção)
+                    if (orderDetails.payment.boletoUrl) {
+                        paymentHTML += `<p><a href="${orderDetails.payment.boletoUrl}" target="_blank" class="btn-primary">Visualizar Boleto</a></p>`;
+                    }
+                    
+                    paymentHTML += `<p>Você também pode acessá-lo na sua conta do Mercado Pago.</p>`;
                 } else if (orderDetails.payment.method === 'pix') {
-                    paymentHTML += `PIX</h4>
-                    <p>O QR Code do PIX e as instruções serão enviados para seu email.</p>`;
+                    paymentHTML += `PIX (Mercado Pago)</h4>
+                    <p>Escaneie o QR Code abaixo para pagar:</p>`;
+                    
+                    // Se tiver QR code (em produção)
+                    if (orderDetails.payment.pixQrCodeBase64) {
+                        paymentHTML += `<div style="text-align: center; margin: 20px 0;">
+                            <img src="data:image/png;base64,${orderDetails.payment.pixQrCodeBase64}" alt="QR Code PIX" style="max-width: 200px;">
+                        </div>`;
+                    }
+                    
+                    if (orderDetails.payment.pixQrCode) {
+                        paymentHTML += `<div style="margin: 15px 0; word-break: break-all; font-size: 0.8rem; background: #f5f5f5; padding: 10px; border-radius: 5px;">
+                            <p style="font-weight: bold; margin-bottom: 5px;">Código PIX copia e cola:</p>
+                            <code>${orderDetails.payment.pixQrCode}</code>
+                        </div>`;
+                    }
+                    
+                    paymentHTML += `<p>O pagamento via PIX é processado instantaneamente.</p>`;
                 }
                 
                 paymentDetailsEl.innerHTML = paymentHTML;
